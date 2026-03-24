@@ -1,31 +1,21 @@
 {
-    "name": "p2pmessenger",
-    "private": true,
-    "version": "1.1.0",
-    "type": "module",
-    "scripts": {
-        "dev": "vite --host 127.0.0.1",
-        "build": "vite build",
-        "preview": "vite preview",
-        "test": "playwright test",
-        "test:ui": "playwright test tests/ui.spec.js tests/sidebar_collapsible.spec.js tests/mobile_header.spec.js",
-        "test:core": "playwright test tests/functional.spec.js tests/enforcement.spec.js",
-        "test:unit": "playwright test tests/unit.spec.js",
-        "test:visual": "playwright test tests/visual.spec.js",
-        "test:a11y": "playwright test tests/a11y.spec.js",
-        "test:network": "playwright test tests/network.spec.js",
-        "test:performance": "playwright test tests/performance.spec.js",
-        "test:e2e": "playwright test tests/e2e.spec.js tests/e2e_extra.spec.js",
-        "test:report": "playwright show-report"
-    },
-    "devDependencies": {
-        "@axe-core/playwright": "^4.11.0",
-        "@playwright/test": "^1.57.0",
-        "@types/node": "^25.0.3",
-        "vite": "^7.3.0"
-    },
-    "dependencies": {
-        "buffer": "^6.0.3",
-        "trystero": "^0.22.0"
-    }
+  "name": "p2pmessenger",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "serve . -l 3000 --no-clipboard",
+    "test": "playwright test",
+    "test:app": "playwright test tests/app.spec.js",
+    "test:crypto": "playwright test tests/crypto.spec.js",
+    "test:mobile": "playwright test tests/mobile.spec.js",
+    "test:a11y": "playwright test tests/a11y.spec.js",
+    "test:report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.11.0",
+    "@playwright/test": "^1.57.0",
+    "peer": "^1.0.2",
+    "serve": "^14.2.4"
+  }
 }

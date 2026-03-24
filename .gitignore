@@ -1,47 +1,19 @@
-# Dependencies
 node_modules
-.pnp
-.pnp.js
+package-lock.json
 
-# Testing
-coverage
-
-# Production
-dist
-
-# Misc
+# OS
 .DS_Store
-*.DS_Store
 Thumbs.db
-*.pem
-*.swp
-*.swo
-*.log
-
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Local env files
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Vite
-.vite
 
 # IDEs
 .vscode/
 .idea/
-.project
-.classpath
-.settings/
-*.sublime-project
-*.sublime-workspace
 
 # Playwright
 playwright-report/
 test-results/
+
+# Misc
+*.log
+*.pem
+.env

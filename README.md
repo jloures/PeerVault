@@ -1,69 +1,72 @@
-# 🌌 p2pmessenger
+# P2P Chat
 
-**p2pmessenger** is a serverless, private, and purely peer-to-peer (P2P) messenger. It allows people to meet online and chat in real-time without a central server, ensuring high privacy and low latency.
+A serverless, peer-to-peer encrypted chat application. No backend, no accounts, no data collection — just open, connect, and chat.
 
-[Preview here](https://jloures.github.io/p2pmessenger/)
+[Live Demo](https://jloures.github.io/p2pmessenger/)
 
-## ✨ Features
+## Features
 
-- **Purely P2P**: No central server. Message relaying happens directly between browsers using WebRTC.
-- **End-to-End Encryption (E2EE)**: Optional secret keys provide AES-256 encryption, ensuring only intended recipients can read messages.
-- **Premium Aesthetics**: A stunning Glassmorphism design with animated background orbs and smooth transitions.
-- **Mobile Optimized**: Fully responsive design with dynamic viewport handling for iPhone and Android.
-- **Zero Configuration**: No account needed. Just pick a handle, a frequency (room), and a key.
-- **Shareable Links**: Generate instant links that auto-fill the frequency and secret key for your peers.
+- **Peer-to-peer** — direct WebRTC connection between browsers via [PeerJS](https://peerjs.com/)
+- **E2E encrypted** — ECDH P-256 key exchange + AES-256-GCM, using the browser's native [Web Crypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
+- **Zero setup** — auto-assigned peer ID, no accounts or configuration
+- **QR code sharing** — generate a QR code that auto-connects when scanned
+- **Single file** — one HTML file with embedded CSS/JS, no build step
+- **Mobile friendly** — responsive layout, safe area insets, virtual keyboard handling
+- **Typing indicator** — see when the other person is typing
+- **No persistence** — nothing stored in localStorage, cookies, or on any server
 
-## 🛠 Tech Stack
+## How it works
 
-- **[Trystero](https://github.com/dmotz/trystero)**: P2P infrastructure using BitTorrent, IPFS, and Gun.
-- **[Vite](https://vitejs.dev/)**: Next-generation frontend tooling.
-- **Vanilla JS & CSS**: Lightweight and high-performance implementation.
+1. Open the page — you get a unique peer ID
+2. Share your ID (copy or QR code) with someone
+3. They paste your ID and click Connect (or scan the QR)
+4. ECDH key exchange establishes a shared AES-256 encryption key
+5. All messages are encrypted before sending and decrypted on receipt
 
-## 🚀 Getting Started
+The only server involved is PeerJS's free signaling server, which brokers the initial WebRTC handshake. Once connected, all traffic flows directly between browsers. The signaling server never sees message content.
 
-### Local Development
+## Running locally
 
-1. **Clone the repository**:
-   ```bash
-   git clone <your-repo-url>
-   cd p2pmessenger
-   ```
+```bash
+# Serve the static file
+npx serve . -l 3000
 
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
+# Or just open index.html directly in a browser
+open index.html
+```
 
-3. **Run the dev server**:
-   ```bash
-   npm run dev
-   ```
-   Open `http://localhost:5173` in your browser.
+To test peer-to-peer, open the page in two browser tabs.
 
-### Deployment
+## Tests
 
-The app is ready for any static hosting provider.
+```bash
+npm install
+npx playwright install --with-deps chromium
 
-1. **Build the production assets**:
-   ```bash
-   npm run build
-   ```
-2. **Deploy the `dist/` folder**:
-   Upload the contents of the `dist/` folder to your favorite host (e.g., GitHub Pages, Cloudflare Pages, S3).
+# Run all tests
+npm test
 
-## 🧪 How to Chat
+# Run specific suites
+npm run test:app      # Core UI and P2P connection tests
+npm run test:crypto   # E2E encryption tests
+npm run test:mobile   # Mobile responsiveness tests
+npm run test:a11y     # Accessibility audits
+```
 
-1. Open the app in two different tabs or devices.
-2. Enter the same **Frequency** (e.g., `secret-cave`).
-3. (Optional) Enter the same **Secret Key** for encryption.
-4. Click **Initialize Link**.
-5. Once the system message "Connected to [Name]" appears, you are chatting directly!
+## Tech stack
 
-## 🛡 Security
+| What | How |
+|------|-----|
+| P2P signaling | [PeerJS](https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js) (CDN) |
+| NAT traversal | Google STUN servers |
+| Encryption | Web Crypto API (ECDH + AES-GCM) |
+| QR codes | [qrcode-generator](https://unpkg.com/qrcode-generator@1.4.4/qrcode.js) (CDN) |
+| Testing | [Playwright](https://playwright.dev/) + [axe-core](https://github.com/dequelabs/axe-core) |
+| Hosting | Any static file server (GitHub Pages, Netlify, etc.) |
 
-- All WebRTC traffic is encrypted via DTLS/SRTP.
-- When a **Secret Key** is used, messages are encrypted at the application layer using AES-GCM before being transmitted.
-- **p2pmessenger** never sees, stores, or touches your messages.
+## Security model
 
----
-Built with ❤️ for a more private web.
+- **Key exchange**: Each peer generates an ephemeral ECDH P-256 key pair on page load. Public keys are exchanged over the PeerJS data channel on connection.
+- **Message encryption**: A shared AES-256-GCM key is derived via ECDH. Every message is encrypted with a random 12-byte IV before sending.
+- **Transport**: WebRTC data channels are encrypted at the transport layer (DTLS). Application-layer encryption adds protection against compromised signaling servers.
+- **No persistence**: Keys exist only in memory and are discarded on page close or disconnect.
