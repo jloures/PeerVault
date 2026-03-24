@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1a1a1a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>P2P Chat</title>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -333,10 +336,75 @@
 
     /* ── Responsive ── */
     @media (max-width: 520px) {
-      .connect-bar { flex-direction: column; }
-      .id-display { width: 100%; }
-      .connect-group { min-width: 0; width: 100%; }
+      .header {
+        padding: 10px 12px;
+        padding-top: calc(10px + env(safe-area-inset-top, 0px));
+        gap: 8px;
+      }
+
+      .header h1 { font-size: 14px; }
+
+      .encryption-badge span { display: none; }
+      .encryption-badge { padding: 3px 6px; gap: 0; }
+
+      .connect-bar {
+        flex-direction: column;
+        padding: 10px 12px;
+        gap: 6px;
+      }
+
+      .connect-bar.hidden-connected { display: none; }
+
+      .id-display {
+        width: 100%;
+        padding: 10px 12px;
+      }
+
+      .connect-group {
+        min-width: 0;
+        width: 100%;
+      }
+
+      .messages {
+        padding: 12px;
+      }
+
       .msg { max-width: 88%; }
+
+      .msg-bubble {
+        font-size: 15px;
+        padding: 10px 12px;
+      }
+
+      .chat-input {
+        padding: 10px 12px;
+        padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+        gap: 6px;
+      }
+
+      .typing-indicator {
+        padding: 2px 12px;
+        min-height: 20px;
+      }
+
+      /* Prevent iOS zoom on focus — inputs must be >= 16px */
+      input[type="text"] { font-size: 16px; }
+      .chat-input input[type="text"] { font-size: 16px; }
+
+      /* Larger touch targets */
+      button {
+        min-height: 44px;
+        padding: 10px 16px;
+      }
+
+      .chat-input button {
+        padding: 10px 20px;
+        font-size: 15px;
+      }
+
+      button.secondary {
+        min-height: 36px;
+      }
     }
   </style>
 </head>
@@ -356,7 +424,7 @@
   </div>
 
   <!-- Connect bar -->
-  <div class="connect-bar">
+  <div class="connect-bar" id="connectBar">
     <div class="id-display">
       <label>Your ID</label>
       <span class="id-value" id="myId">...</span>
@@ -408,6 +476,7 @@
       const statusDot    = $('statusDot');
       const statusText   = $('statusText');
       const encBadge     = $('encBadge');
+      const connectBar   = $('connectBar');
 
       // ── State ──
       let peer = null;
@@ -487,10 +556,19 @@
         statusText.textContent = text;
       }
 
+      function isMobile() {
+        return window.innerWidth <= 520;
+      }
+
       function setChatEnabled(enabled) {
         msgInput.disabled = !enabled;
         sendBtn.disabled = !enabled;
-        if (enabled) msgInput.focus();
+        if (enabled) {
+          msgInput.focus();
+          if (isMobile()) connectBar.classList.add('hidden-connected');
+        } else {
+          connectBar.classList.remove('hidden-connected');
+        }
       }
 
       // ── Messages UI ──
@@ -736,6 +814,14 @@
         } catch (e) {
           addSystemMessage('Failed to encrypt message');
         }
+      }
+
+      // ── Mobile: resize on virtual keyboard open/close ──
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', () => {
+          document.body.style.height = window.visualViewport.height + 'px';
+          messagesEl.scrollTop = messagesEl.scrollHeight;
+        });
       }
 
       // ── Start ──
