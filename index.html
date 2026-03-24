@@ -260,6 +260,28 @@
       font-style: italic;
     }
 
+    .encryption-badge {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--green);
+      background: rgba(52, 211, 153, 0.1);
+      border: 1px solid rgba(52, 211, 153, 0.25);
+      border-radius: 20px;
+      padding: 3px 10px;
+      white-space: nowrap;
+    }
+
+    .encryption-badge.active { display: flex; }
+
+    .encryption-badge svg {
+      width: 12px;
+      height: 12px;
+      flex-shrink: 0;
+    }
+
     /* ── Chat input ── */
     .chat-input {
       display: flex;
@@ -323,6 +345,10 @@
   <!-- Header -->
   <div class="header">
     <h1>P2P Chat</h1>
+    <div class="encryption-badge" id="encBadge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <span>E2E Encrypted</span>
+    </div>
     <div class="status">
       <span class="status-dot" id="statusDot"></span>
       <span id="statusText">Initializing...</span>
@@ -381,12 +407,68 @@
       const sendBtn      = $('sendBtn');
       const statusDot    = $('statusDot');
       const statusText   = $('statusText');
+      const encBadge     = $('encBadge');
 
       // ── State ──
       let peer = null;
       let conn = null;
       let typingTimeout = null;
       let remoteTypingTimeout = null;
+      let myKeyPair = null;
+      let sharedKey = null;
+
+      // ── E2E Crypto (ECDH + AES-256-GCM) ──
+      const ECDH_PARAMS = { name: 'ECDH', namedCurve: 'P-256' };
+      const AES_PARAMS  = { name: 'AES-GCM', length: 256 };
+
+      async function generateKeyPair() {
+        return crypto.subtle.generateKey(ECDH_PARAMS, false, ['deriveKey']);
+      }
+
+      async function exportPublicKey(key) {
+        const raw = await crypto.subtle.exportKey('raw', key);
+        return Array.from(new Uint8Array(raw));
+      }
+
+      async function importPublicKey(rawArray) {
+        const bytes = new Uint8Array(rawArray);
+        return crypto.subtle.importKey('raw', bytes, ECDH_PARAMS, true, []);
+      }
+
+      async function deriveSharedKey(privateKey, remotePublicKey) {
+        return crypto.subtle.deriveKey(
+          { name: 'ECDH', public: remotePublicKey },
+          privateKey,
+          AES_PARAMS,
+          false,
+          ['encrypt', 'decrypt']
+        );
+      }
+
+      async function encryptMessage(text) {
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const encoded = new TextEncoder().encode(text);
+        const ciphertext = await crypto.subtle.encrypt(
+          { name: 'AES-GCM', iv },
+          sharedKey,
+          encoded
+        );
+        return {
+          iv: Array.from(iv),
+          ct: Array.from(new Uint8Array(ciphertext))
+        };
+      }
+
+      async function decryptMessage(payload) {
+        const iv = new Uint8Array(payload.iv);
+        const ct = new Uint8Array(payload.ct);
+        const decrypted = await crypto.subtle.decrypt(
+          { name: 'AES-GCM', iv },
+          sharedKey,
+          ct
+        );
+        return new TextDecoder().decode(decrypted);
+      }
 
       // ── Helpers ──
       function escapeHtml(str) {
@@ -463,26 +545,56 @@
       // ── Connection handling ──
       function setupConnection(connection) {
         conn = connection;
+        sharedKey = null;
+        encBadge.classList.remove('active');
         setStatus('connecting', 'Connecting...');
 
-        conn.on('open', () => {
-          setStatus('connected', 'Connected to ' + conn.peer);
-          setChatEnabled(true);
+        conn.on('open', async () => {
+          setStatus('connecting', 'Exchanging encryption keys...');
           connectBtn.disabled = true;
           remoteIdInput.disabled = true;
           addSystemMessage('Connected to peer ' + conn.peer);
+
+          // Send our public key
+          const pubKey = await exportPublicKey(myKeyPair.publicKey);
+          conn.send({ type: 'key-exchange', publicKey: pubKey });
         });
 
-        conn.on('data', (data) => {
-          if (data && data.type === 'typing') {
+        conn.on('data', async (data) => {
+          if (!data || !data.type) return;
+
+          // Key exchange
+          if (data.type === 'key-exchange') {
+            try {
+              const remotePubKey = await importPublicKey(data.publicKey);
+              sharedKey = await deriveSharedKey(myKeyPair.privateKey, remotePubKey);
+              encBadge.classList.add('active');
+              setStatus('connected', 'Connected to ' + conn.peer);
+              setChatEnabled(true);
+              addSystemMessage('E2E encryption established');
+            } catch (e) {
+              setStatus('error', 'Key exchange failed');
+              addSystemMessage('Encryption handshake failed: ' + e.message);
+            }
+            return;
+          }
+
+          if (data.type === 'typing') {
             showRemoteTyping();
             return;
           }
-          if (data && data.type === 'chat') {
-            addMessage(data.text, 'Them', false);
-            // Clear typing indicator when a message arrives
-            typingEl.textContent = '';
-            clearTimeout(remoteTypingTimeout);
+
+          // Encrypted chat message
+          if (data.type === 'encrypted' && sharedKey) {
+            try {
+              const text = await decryptMessage(data.payload);
+              addMessage(text, 'Them', false);
+              typingEl.textContent = '';
+              clearTimeout(remoteTypingTimeout);
+            } catch (e) {
+              addSystemMessage('Failed to decrypt message');
+            }
+            return;
           }
         });
 
@@ -491,6 +603,8 @@
           setChatEnabled(false);
           connectBtn.disabled = false;
           remoteIdInput.disabled = false;
+          sharedKey = null;
+          encBadge.classList.remove('active');
           addSystemMessage('Peer disconnected');
           conn = null;
         });
@@ -610,17 +724,25 @@
         }
       });
 
-      function sendMessage() {
+      async function sendMessage() {
         const text = msgInput.value.trim();
-        if (!text || !conn || !conn.open) return;
-        conn.send({ type: 'chat', text: text });
-        addMessage(text, 'You', true);
-        msgInput.value = '';
-        msgInput.focus();
+        if (!text || !conn || !conn.open || !sharedKey) return;
+        try {
+          const payload = await encryptMessage(text);
+          conn.send({ type: 'encrypted', payload });
+          addMessage(text, 'You', true);
+          msgInput.value = '';
+          msgInput.focus();
+        } catch (e) {
+          addSystemMessage('Failed to encrypt message');
+        }
       }
 
       // ── Start ──
-      initPeer();
+      generateKeyPair().then((kp) => {
+        myKeyPair = kp;
+        initPeer();
+      });
     })();
   </script>
 </body>
