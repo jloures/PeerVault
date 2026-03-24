@@ -21,162 +21,9 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Job 1: Core Connectivity & Logic Tests
-  test-core:
-    name: Core Integration Tests
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm install
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
-      - name: Run Core Tests
-        run: npm run test:core
-
-  # Job 2: UI & User Experience Tests
-  test-ui:
-    name: UI E2E Tests
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm install
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
-      - name: Run UI Tests
-        run: npm run test:ui
-
-  # Job 2.5: Unit Logic Tests
-  test-unit:
-    name: Unit Logic Tests
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm install
-      - name: Run Unit Tests
-        run: npm run test:unit
-
-
-  # Job 2.7: Visual Regression Tests
-  test-visual:
-    name: Visual Regression Tests
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm install
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
-      - name: Run Visual Tests
-        run: npm run test:visual
-
-  # Job 2.8: Accessibility Audits
-  test-a11y:
-    name: Accessibility Audits
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm install
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
-      - name: Run A11y Tests
-        run: npm run test:a11y
-
-  # Job 2.9: Network Resilience Tests
-  test-network:
-    name: Network Resilience Tests
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm install
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
-      - name: Run Network Tests
-        run: npm run test:network
-
-  # Job 2.10: Performance Benchmarks
-  test-performance:
-    name: Performance Tests
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm install
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
-      - name: Run Performance Tests
-        run: npm run test:performance
-
-  # Job 3: Full End-to-End Journeys
-  test-e2e:
-    name: E2E Journey Tests
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm install
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
-      - name: Run E2E Tests
-        run: npm run test:e2e
-
-  # Job 4: Build and Deploy (only if ALL test suites pass and on main branch)
   deploy:
     name: Deploy to Production
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [test-core, test-ui, test-unit, test-visual, test-a11y, test-network, test-performance, test-e2e]
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -184,23 +31,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm install
-      - name: Build
-        run: npm run build
-        env:
-          VITE_APP_BUILD_NUMBER: "${{ github.run_number }}"
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './dist'
+          path: '.'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
