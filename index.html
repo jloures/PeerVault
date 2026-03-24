@@ -627,7 +627,10 @@
         encBadge.classList.remove('active');
         setStatus('connecting', 'Connecting...');
 
-        conn.on('open', async () => {
+        let openHandled = false;
+        const onOpen = async () => {
+          if (openHandled) return;
+          openHandled = true;
           setStatus('connecting', 'Exchanging encryption keys...');
           connectBtn.disabled = true;
           remoteIdInput.disabled = true;
@@ -636,7 +639,11 @@
           // Send our public key
           const pubKey = await exportPublicKey(myKeyPair.publicKey);
           conn.send({ type: 'key-exchange', publicKey: pubKey });
-        });
+        };
+
+        conn.on('open', onOpen);
+        // For incoming connections, open may have already fired before we attached the handler
+        if (conn.open) onOpen();
 
         conn.on('data', async (data) => {
           if (!data || !data.type) return;
