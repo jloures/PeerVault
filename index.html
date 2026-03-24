@@ -285,6 +285,52 @@
       flex-shrink: 0;
     }
 
+    /* ── QR Modal ── */
+    .qr-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .qr-overlay.active { display: flex; }
+
+    .qr-modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      max-width: 340px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .qr-modal h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .qr-modal canvas {
+      border-radius: 12px;
+    }
+
+    .qr-modal p {
+      font-size: 12px;
+      color: var(--text-dim);
+      text-align: center;
+      line-height: 1.5;
+    }
+
     /* ── Chat input ── */
     .chat-input {
       display: flex;
@@ -429,10 +475,21 @@
       <label>Your ID</label>
       <span class="id-value" id="myId">...</span>
       <button class="secondary" id="copyBtn" title="Copy your Peer ID" disabled>Copy</button>
+      <button class="secondary" id="qrBtn" title="Show QR code" disabled>QR</button>
     </div>
     <div class="connect-group">
       <input type="text" id="remoteIdInput" placeholder="Enter peer's ID" autocomplete="off" spellcheck="false">
       <button id="connectBtn" disabled>Connect</button>
+    </div>
+  </div>
+
+  <!-- QR overlay -->
+  <div class="qr-overlay" id="qrOverlay">
+    <div class="qr-modal">
+      <h2>Scan to Connect</h2>
+      <canvas id="qrCanvas"></canvas>
+      <p>Scan this QR code with a phone camera to open a chat connected to your peer ID.</p>
+      <button class="secondary" id="qrCloseBtn">Close</button>
     </div>
   </div>
 
@@ -458,6 +515,7 @@
   </div>
 
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="https://unpkg.com/qrcode-generator@1.4.4/qrcode.js"></script>
   <script>
     (function () {
       'use strict';
@@ -477,6 +535,10 @@
       const statusText   = $('statusText');
       const encBadge     = $('encBadge');
       const connectBar   = $('connectBar');
+      const qrBtn        = $('qrBtn');
+      const qrOverlay    = $('qrOverlay');
+      const qrCanvas     = $('qrCanvas');
+      const qrCloseBtn   = $('qrCloseBtn');
 
       // ── State ──
       let peer = null;
@@ -720,7 +782,18 @@
           myIdEl.textContent = id;
           copyBtn.disabled = false;
           connectBtn.disabled = false;
+          qrBtn.disabled = false;
           setStatus('', 'Waiting for connection');
+
+          // Auto-connect if opened via QR code / link with #peer= hash
+          const hashParams = new URLSearchParams(window.location.hash.slice(1));
+          const targetPeer = hashParams.get('peer');
+          if (targetPeer && targetPeer !== id) {
+            remoteIdInput.value = targetPeer;
+            // Clear the hash so refreshing doesn't re-trigger
+            history.replaceState(null, '', window.location.pathname + window.location.search);
+            connectBtn.click();
+          }
         });
 
         peer.on('connection', (incoming) => {
@@ -799,6 +872,42 @@
           e.preventDefault();
           sendMessage();
         }
+      });
+
+      // QR code
+      qrBtn.addEventListener('click', () => {
+        const id = myIdEl.textContent;
+        if (!id || id === '...') return;
+        const url = window.location.origin + window.location.pathname + '#peer=' + id;
+        const qr = qrcode(0, 'M');
+        qr.addData(url);
+        qr.make();
+        const size = 220;
+        const cellSize = Math.floor(size / qr.getModuleCount());
+        const ctx = qrCanvas.getContext('2d');
+        const modules = qr.getModuleCount();
+        const totalSize = cellSize * modules;
+        qrCanvas.width = totalSize;
+        qrCanvas.height = totalSize;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, totalSize, totalSize);
+        ctx.fillStyle = '#000000';
+        for (let r = 0; r < modules; r++) {
+          for (let c = 0; c < modules; c++) {
+            if (qr.isDark(r, c)) {
+              ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+            }
+          }
+        }
+        qrOverlay.classList.add('active');
+      });
+
+      qrCloseBtn.addEventListener('click', () => {
+        qrOverlay.classList.remove('active');
+      });
+
+      qrOverlay.addEventListener('click', (e) => {
+        if (e.target === qrOverlay) qrOverlay.classList.remove('active');
       });
 
       // Throttled typing signal
