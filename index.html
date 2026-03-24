@@ -1,200 +1,627 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/png" href="./favicon.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>p2pmessenger - Premium P2P Chat</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@500;700&display=swap"
-    rel="stylesheet">
-  <link rel="stylesheet" href="./style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>P2P Chat</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0f0f0f;
+      --surface: #1a1a1a;
+      --surface-2: #242424;
+      --border: #2e2e2e;
+      --text: #e4e4e4;
+      --text-dim: #777;
+      --accent: #6c63ff;
+      --accent-hover: #7f78ff;
+      --green: #34d399;
+      --yellow: #fbbf24;
+      --red: #f87171;
+      --radius: 10px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      gap: 12px;
+    }
+
+    .header h1 {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-dim);
+      white-space: nowrap;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    .status-dot.connecting { background: var(--yellow); }
+    .status-dot.connected  { background: var(--green); }
+    .status-dot.error      { background: var(--red); }
+
+    /* ── Connect bar ── */
+    .connect-bar {
+      display: flex;
+      gap: 8px;
+      padding: 12px 20px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    .id-display {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px 12px;
+      font-size: 13px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .id-display label {
+      color: var(--text-dim);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .id-display .id-value {
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 13px;
+      color: var(--accent);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      user-select: all;
+    }
+
+    .connect-group {
+      display: flex;
+      gap: 8px;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px 12px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--accent);
+    }
+
+    input[type="text"]::placeholder {
+      color: var(--text-dim);
+    }
+
+    button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    button:hover { background: var(--accent-hover); }
+    button:active { transform: scale(0.97); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    button.secondary {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    button.secondary:hover {
+      background: var(--border);
+    }
+
+    /* ── Messages ── */
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .messages::-webkit-scrollbar { width: 6px; }
+    .messages::-webkit-scrollbar-track { background: transparent; }
+    .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    .msg {
+      display: flex;
+      flex-direction: column;
+      max-width: 75%;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg.own { align-self: flex-end; align-items: flex-end; }
+    .msg.their { align-self: flex-start; align-items: flex-start; }
+
+    .msg-sender {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dim);
+      margin-bottom: 2px;
+      padding: 0 4px;
+    }
+
+    .msg.own .msg-sender { color: var(--accent); }
+
+    .msg-bubble {
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    .msg.own .msg-bubble {
+      background: var(--accent);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .msg.their .msg-bubble {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg-time {
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-top: 2px;
+      padding: 0 4px;
+    }
+
+    .msg-system {
+      align-self: center;
+      font-size: 11px;
+      color: var(--text-dim);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin: 8px 0;
+    }
+
+    .typing-indicator {
+      align-self: flex-start;
+      font-size: 12px;
+      color: var(--text-dim);
+      padding: 4px 8px;
+      min-height: 24px;
+      font-style: italic;
+    }
+
+    /* ── Chat input ── */
+    .chat-input {
+      display: flex;
+      gap: 8px;
+      padding: 12px 20px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .chat-input input[type="text"] {
+      font-size: 14px;
+      padding: 10px 14px;
+    }
+
+    .chat-input button {
+      padding: 10px 24px;
+      font-size: 14px;
+    }
+
+    /* ── Empty state ── */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      gap: 12px;
+      color: var(--text-dim);
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .empty-state p {
+      font-size: 14px;
+      max-width: 360px;
+      line-height: 1.5;
+    }
+
+    .empty-state .step {
+      font-size: 13px;
+      line-height: 1.6;
+      text-align: left;
+    }
+
+    .empty-state .step strong {
+      color: var(--text);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 520px) {
+      .connect-bar { flex-direction: column; }
+      .id-display { width: 100%; }
+      .connect-group { min-width: 0; width: 100%; }
+      .msg { max-width: 88%; }
+    }
+  </style>
 </head>
+<body>
 
-<body class="h-screen w-screen overflow-hidden">
+  <!-- Header -->
+  <div class="header">
+    <h1>P2P Chat</h1>
+    <div class="status">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">Initializing...</span>
+    </div>
+  </div>
 
-  <div id="app" class="app-container">
+  <!-- Connect bar -->
+  <div class="connect-bar">
+    <div class="id-display">
+      <label>Your ID</label>
+      <span class="id-value" id="myId">...</span>
+      <button class="secondary" id="copyBtn" title="Copy your Peer ID" disabled>Copy</button>
+    </div>
+    <div class="connect-group">
+      <input type="text" id="remoteIdInput" placeholder="Enter peer's ID" autocomplete="off" spellcheck="false">
+      <button id="connectBtn" disabled>Connect</button>
+    </div>
+  </div>
 
-    <!-- Sidebar -->
-    <aside id="sidebar" class="sidebar-smooth">
-      <header class="p-6 pb-2">
-        <div class="flex items-center justify-between mb-4">
-          <button id="edit-profile-btn" aria-label="Edit Profile" class="relative group toon-button">
-            <img src="./favicon.png" alt="p2pmessenger"
-              class="w-12 h-12 rounded-2xl border-4 border-[#1A1A1A] bg-white shadow-[4px_4px_0px_#1A1A1A] group-active:translate-x-0.5 group-active:translate-y-0.5 group-active:shadow-none transition-all" />
-            <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-[#6BCB77] border-2 border-[#1A1A1A] rounded-full"></div>
-            <div
-              class="absolute inset-0 bg-black/0 group-hover:bg-black/10 rounded-2xl transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-              <span class="text-xs">⚙️</span>
-            </div>
-          </button>
-        </div>
-        <div class="flex flex-col gap-1">
-          <div class="flex items-baseline gap-2">
-            <h1 class="text-2xl tracking-widest leading-none">P2PMSG</h1>
-            <span id="app-version"
-              class="text-[10px] font-black text-[#1A1A1A] opacity-80 uppercase bg-black/5 px-2 py-0.5 rounded-full">v1.3.1</span>
-          </div>
-          <div id="display-username"
-            class="text-[11px] font-black text-[#1A1A1A] uppercase tracking-[0.2em] opacity-80 pt-1">HERO</div>
-        </div>
-      </header>
-
-      <div class="flex-1 overflow-y-auto p-6 space-y-4 scroll-custom">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-[11px] font-black uppercase text-[#1A1A1A] tracking-widest">Channels</span>
-          <button id="show-join-modal" aria-label="Join or create a new room"
-            class="bg-[#FF6B6B] text-[#1A1A1A] w-7 h-7 rounded-xl border-4 border-[#1A1A1A] flex items-center justify-center toon-button font-black text-lg pb-0.5 shadow-[2px_2px_0px_#1A1A1A]">+</button>
-        </div>
-
-        <ul id="room-list" class="space-y-3" role="list">
-          <!-- Room Items go here -->
-        </ul>
+  <!-- Messages -->
+  <div class="messages" id="messages">
+    <div class="empty-state" id="emptyState">
+      <p>No connection yet.</p>
+      <div class="step">
+        <strong>1.</strong> Copy your ID and share it with a friend<br>
+        <strong>2.</strong> Or paste their ID above and click Connect<br>
+        <strong>3.</strong> Start chatting peer-to-peer
       </div>
+    </div>
+  </div>
 
-      <footer class="p-6 bg-black/5">
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] font-black text-[#1A1A1A] uppercase tracking-widest">Security First P2P</span>
-        </div>
-      </footer>
-    </aside>
+  <!-- Typing indicator -->
+  <div class="typing-indicator" id="typingIndicator"></div>
 
-    <button id="sidebar-toggle" aria-label="Toggle sidebar menu" class="fixed z-[100]">
-      <span class="burger-span"></span>
-      <span class="burger-span"></span>
-      <span class="burger-span"></span>
-    </button>
+  <!-- Chat input -->
+  <div class="chat-input">
+    <input type="text" id="msgInput" placeholder="Type a message..." autocomplete="off" disabled>
+    <button id="sendBtn" disabled>Send</button>
+  </div>
 
-    <!-- Main Chat Area -->
-    <main class="main-smooth relative">
-      <!-- Main Header -->
-      <header class="header-smooth flex justify-between">
-        <div class="flex items-center gap-4 min-w-0 flex-1">
-          <div class="flex flex-col min-w-0">
-            <h2 id="display-room-id" class="text-2xl tracking-wide">SELF-MESSAGES</h2>
-            <p id="peer-count"
-              class="text-[10px] font-black text-[#1A1A1A] uppercase tracking-widest opacity-80 mt-0.5"></p>
-          </div>
-        </div>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script>
+    (function () {
+      'use strict';
 
-        <div class="flex items-center gap-3">
-          <button id="share-room-btn" aria-label="Share room" style="display: none;"
-            class="bg-white px-4 py-2 rounded-xl border-4 border-[#1A1A1A] font-black text-sm toon-button shadow-[4px_4px_0px_#1A1A1A] flex items-center gap-2 hover:bg-[#FFD93D] transition-colors">
-            SHARE 📤
-          </button>
-          <button id="leave-btn" aria-label="Leave current room" style="display: none;"
-            class="bg-[#FF6B6B] text-[#1A1A1A] px-4 py-2 rounded-xl border-4 border-[#1A1A1A] font-black text-[10px] toon-button shadow-[4px_4px_0px_#1A1A1A] uppercase tracking-widest">Exit
-            ❌</button>
-        </div>
-      </header>
+      // ── DOM refs ──
+      const $ = (id) => document.getElementById(id);
+      const myIdEl       = $('myId');
+      const copyBtn      = $('copyBtn');
+      const remoteIdInput = $('remoteIdInput');
+      const connectBtn   = $('connectBtn');
+      const messagesEl   = $('messages');
+      const emptyState   = $('emptyState');
+      const typingEl     = $('typingIndicator');
+      const msgInput     = $('msgInput');
+      const sendBtn      = $('sendBtn');
+      const statusDot    = $('statusDot');
+      const statusText   = $('statusText');
 
-      <!-- Message Area -->
-      <div id="messages-container" aria-live="polite"
-        class="flex-1 overflow-y-auto p-6 space-y-6 scroll-custom flex flex-col bg-[#6BCB77]/5">
-        <div class="system-message">INITIALIZING SECURE P2P CHANNEL...</div>
-      </div>
+      // ── State ──
+      let peer = null;
+      let conn = null;
+      let typingTimeout = null;
+      let remoteTypingTimeout = null;
 
-      <!-- Input Area -->
-      <footer class="footer-smooth z-10">
-        <form id="chat-form" class="flex gap-3 max-w-5xl mx-auto">
-          <input type="text" id="message-input" placeholder="Message to channel..." autocomplete="off"
-            aria-label="Message text" class="flex-1 input-smooth text-base shadow-[4px_4px_0px_rgba(0,0,0,0.05)]">
-          <button type="submit" aria-label="Send message"
-            class="bg-[#FF6B6B] text-[#1A1A1A] px-8 py-3 rounded-2xl border-4 border-[#1A1A1A] shadow-[6px_6px_0px_#1A1A1A] toon-button font-black text-xl uppercase tracking-tighter">
-            GO!
-          </button>
-        </form>
-      </footer>
+      // ── Helpers ──
+      function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
 
-      <!-- Join Room Modal -->
-      <div id="join-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"
-        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-        <div class="toon-modal">
-          <header class="toon-modal-header bg-[#FFD93D]">
-            <h2 id="modal-title" class="text-2xl">JOIN ROOM</h2>
-            <button id="close-modal" aria-label="Close modal"
-              class="text-[#1A1A1A] font-black text-3xl hover:scale-110 transition-transform">×</button>
-          </header>
-          <form id="join-form" class="toon-modal-body space-y-6">
-            <div class="space-y-2">
-              <label for="room-id"
-                class="block font-black text-[10px] uppercase ml-1 tracking-widest text-[#1A1A1A]">Room Name /
-                ID</label>
-              <div class="flex gap-3">
-                <input type="text" id="room-id" placeholder="e.g. secret-base" required maxlength="30"
-                  class="flex-1 input-smooth" />
-                <button type="button" id="gen-room-btn" aria-label="Generate random room ID"
-                  class="bg-[#FFD93D] w-12 rounded-xl border-4 border-[#1A1A1A] toon-button font-bold text-xl flex items-center justify-center shadow-[2px_2px_0px_#1A1A1A]">🎲</button>
-              </div>
-            </div>
-            <div class="space-y-2">
-              <label for="room-password"
-                class="block font-black text-[10px] uppercase ml-1 tracking-widest text-[#1A1A1A]">Secret
-                Passkey (Optional)</label>
-              <input type="password" id="room-password" placeholder="••••••••" class="w-full input-smooth" />
-            </div>
-            <button type="submit"
-              class="w-full bg-[#6BCB77] text-[#1A1A1A] p-4 rounded-2xl border-4 border-[#1A1A1A] shadow-[6px_6px_0px_#1A1A1A] toon-button font-black text-lg uppercase tracking-tight">START
-              CHATTING</button>
-          </form>
-        </div>
-      </div>
+      function formatTime(ts) {
+        const d = new Date(ts);
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
 
-      <div id="sidebar-backdrop"
-        class="fixed inset-0 bg-black/40 z-20 hidden sm:hidden transition-opacity duration-300">
-      </div>
+      function setStatus(state, text) {
+        statusDot.className = 'status-dot ' + state;
+        statusText.textContent = text;
+      }
 
-      <!-- Identity Modal -->
-      <div id="identity-modal" role="dialog" aria-modal="true" aria-labelledby="identity-title"
-        class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
-        <div class="toon-modal">
-          <header class="toon-modal-header bg-[#4D96FF]">
-            <h2 id="identity-title" class="text-3xl">WHO ARE YOU?</h2>
-          </header>
-          <form id="identity-form" class="toon-modal-body space-y-8">
-            <div class="space-y-3">
-              <label for="identity-input" class="sr-only">Your Hero Name</label>
-              <p class="text-xs font-black text-[#1A1A1A] uppercase tracking-widest text-center">Identity must be 4+
-                characters.</p>
-              <input type="text" id="identity-input" placeholder="Your Hero Name..." required minlength="4"
-                maxlength="20"
-                class="w-full input-smooth text-xl text-center py-5 shadow-[4px_4px_0px_rgba(0,0,0,0.05)]" />
-            </div>
-            <button type="submit"
-              class="w-full bg-[#FF6B6B] text-[#1A1A1A] p-5 rounded-[24px] border-[6px] border-[#1A1A1A] shadow-[8px_8px_0px_#1A1A1A] toon-button font-black text-2xl uppercase tracking-tighter">
-              BATTLE START!
-            </button>
-          </form>
-        </div>
-      </div>
+      function setChatEnabled(enabled) {
+        msgInput.disabled = !enabled;
+        sendBtn.disabled = !enabled;
+        if (enabled) msgInput.focus();
+      }
 
-      <!-- Share Room Modal -->
-      <div id="share-modal" role="dialog" aria-modal="true" aria-labelledby="share-title"
-        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-        <div class="toon-modal w-full max-w-sm">
-          <header class="toon-modal-header bg-[#FFD93D]">
-            <h2 id="share-title" class="text-2xl">SHARE ROOM</h2>
-            <button id="close-share-modal" aria-label="Close modal"
-              class="text-[#1A1A1A] font-black text-3xl hover:scale-110 transition-transform">×</button>
-          </header>
-          <div class="toon-modal-body flex flex-col items-center space-y-6">
-            <div id="qrcode-container"
-              class="bg-white p-4 border-4 border-[#1A1A1A] rounded-2xl shadow-[4px_4px_0px_rgba(0,0,0,0.1)]">
-              <!-- QR Code Canvas will be injected here -->
-            </div>
-            <p class="text-xs font-black text-[#1A1A1A]/85 text-center uppercase tracking-widest px-4">
-              Scan to join immediately or copy the link below
-            </p>
-            <button id="copy-invite-btn"
-              class="w-full bg-[#6BCB77] text-[#1A1A1A] py-3 rounded-xl border-4 border-[#1A1A1A] toon-button font-black text-lg shadow-[4px_4px_0px_#1A1A1A] flex items-center justify-center gap-2">
-              COPY INVITE LINK 📋
-            </button>
-          </div>
-        </div>
-      </div>
+      // ── Messages UI ──
+      function addMessage(text, sender, isOwn) {
+        emptyState.style.display = 'none';
+        const wrapper = document.createElement('div');
+        wrapper.className = 'msg ' + (isOwn ? 'own' : 'their');
 
-      <script type="module" src="./main.js"></script>
+        const senderEl = document.createElement('div');
+        senderEl.className = 'msg-sender';
+        senderEl.textContent = isOwn ? 'You' : 'Them';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'msg-bubble';
+        bubble.textContent = text;
+
+        const time = document.createElement('div');
+        time.className = 'msg-time';
+        time.textContent = formatTime(Date.now());
+
+        wrapper.appendChild(senderEl);
+        wrapper.appendChild(bubble);
+        wrapper.appendChild(time);
+        messagesEl.appendChild(wrapper);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      function addSystemMessage(text) {
+        emptyState.style.display = 'none';
+        const el = document.createElement('div');
+        el.className = 'msg-system';
+        el.textContent = text;
+        messagesEl.appendChild(el);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      // ── Typing indicator ──
+      function showRemoteTyping() {
+        typingEl.textContent = 'Peer is typing...';
+        clearTimeout(remoteTypingTimeout);
+        remoteTypingTimeout = setTimeout(() => {
+          typingEl.textContent = '';
+        }, 2500);
+      }
+
+      function sendTypingSignal() {
+        if (conn && conn.open) {
+          conn.send({ type: 'typing' });
+        }
+      }
+
+      // ── Connection handling ──
+      function setupConnection(connection) {
+        conn = connection;
+        setStatus('connecting', 'Connecting...');
+
+        conn.on('open', () => {
+          setStatus('connected', 'Connected to ' + conn.peer);
+          setChatEnabled(true);
+          connectBtn.disabled = true;
+          remoteIdInput.disabled = true;
+          addSystemMessage('Connected to peer ' + conn.peer);
+        });
+
+        conn.on('data', (data) => {
+          if (data && data.type === 'typing') {
+            showRemoteTyping();
+            return;
+          }
+          if (data && data.type === 'chat') {
+            addMessage(data.text, 'Them', false);
+            // Clear typing indicator when a message arrives
+            typingEl.textContent = '';
+            clearTimeout(remoteTypingTimeout);
+          }
+        });
+
+        conn.on('close', () => {
+          setStatus('', 'Disconnected');
+          setChatEnabled(false);
+          connectBtn.disabled = false;
+          remoteIdInput.disabled = false;
+          addSystemMessage('Peer disconnected');
+          conn = null;
+        });
+
+        conn.on('error', (err) => {
+          setStatus('error', 'Connection error');
+          addSystemMessage('Connection error: ' + err.message);
+        });
+      }
+
+      // ── Init PeerJS ──
+      function initPeer() {
+        setStatus('connecting', 'Connecting to signaling server...');
+
+        peer = new Peer(undefined, {
+          config: {
+            iceServers: [
+              { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'stun:stun1.l.google.com:19302' },
+              { urls: 'stun:stun2.l.google.com:19302' },
+              { urls: 'stun:stun3.l.google.com:19302' },
+              { urls: 'stun:stun4.l.google.com:19302' }
+            ]
+          }
+        });
+
+        peer.on('open', (id) => {
+          myIdEl.textContent = id;
+          copyBtn.disabled = false;
+          connectBtn.disabled = false;
+          setStatus('', 'Waiting for connection');
+        });
+
+        peer.on('connection', (incoming) => {
+          if (conn && conn.open) {
+            incoming.on('open', () => {
+              incoming.send({ type: 'chat', text: '[Peer is already in a session]' });
+              setTimeout(() => incoming.close(), 500);
+            });
+            return;
+          }
+          setupConnection(incoming);
+          addSystemMessage('Incoming connection from ' + incoming.peer);
+        });
+
+        peer.on('error', (err) => {
+          if (err.type === 'peer-unavailable') {
+            setStatus('error', 'Peer not found');
+            addSystemMessage('Peer not found — check the ID and try again');
+            connectBtn.disabled = false;
+          } else if (err.type === 'disconnected' || err.type === 'network') {
+            setStatus('error', 'Network error — reconnecting...');
+            setTimeout(() => {
+              if (peer && peer.destroyed) return;
+              peer.reconnect();
+            }, 3000);
+          } else {
+            setStatus('error', 'Error: ' + err.type);
+            addSystemMessage('Error: ' + err.message);
+          }
+        });
+
+        peer.on('disconnected', () => {
+          if (!peer.destroyed) {
+            setStatus('connecting', 'Reconnecting...');
+            setTimeout(() => {
+              if (peer && !peer.destroyed) peer.reconnect();
+            }, 2000);
+          }
+        });
+      }
+
+      // ── Event listeners ──
+      copyBtn.addEventListener('click', () => {
+        const id = myIdEl.textContent;
+        if (!id || id === '...') return;
+        navigator.clipboard.writeText(id).then(() => {
+          const original = copyBtn.textContent;
+          copyBtn.textContent = 'Copied!';
+          setTimeout(() => { copyBtn.textContent = original; }, 1500);
+        });
+      });
+
+      connectBtn.addEventListener('click', () => {
+        const remoteId = remoteIdInput.value.trim();
+        if (!remoteId) return;
+        if (remoteId === myIdEl.textContent) {
+          addSystemMessage('You cannot connect to yourself');
+          return;
+        }
+        if (conn && conn.open) {
+          addSystemMessage('Already connected — disconnect first');
+          return;
+        }
+        connectBtn.disabled = true;
+        const outgoing = peer.connect(remoteId, { reliable: true });
+        setupConnection(outgoing);
+      });
+
+      remoteIdInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') connectBtn.click();
+      });
+
+      sendBtn.addEventListener('click', sendMessage);
+      msgInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+      // Throttled typing signal
+      msgInput.addEventListener('input', () => {
+        if (!typingTimeout) {
+          sendTypingSignal();
+          typingTimeout = setTimeout(() => { typingTimeout = null; }, 1000);
+        }
+      });
+
+      function sendMessage() {
+        const text = msgInput.value.trim();
+        if (!text || !conn || !conn.open) return;
+        conn.send({ type: 'chat', text: text });
+        addMessage(text, 'You', true);
+        msgInput.value = '';
+        msgInput.focus();
+      }
+
+      // ── Start ──
+      initPeer();
+    })();
+  </script>
 </body>
-
 </html>
