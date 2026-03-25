@@ -160,6 +160,333 @@ test.describe('Connection Validation', () => {
   });
 });
 
+// ── Disconnect & State Recovery ──
+
+test.describe.serial('Disconnect & State Recovery', () => {
+  test.setTimeout(60_000);
+
+  test('controls re-enable after peer disconnects', async ({ browser }) => {
+    const ctx1 = await browser.newContext();
+    const ctx2 = await browser.newContext();
+    const alice = await ctx1.newPage();
+    const bob = await ctx2.newPage();
+
+    await alice.goto(BASE + PEER_PARAMS);
+    await bob.goto(BASE + PEER_PARAMS);
+
+    const aliceId = await waitForPeerId(alice);
+    await waitForPeerId(bob);
+
+    await bob.locator('#remoteIdInput').fill(aliceId);
+    await bob.locator('#connectBtn').click();
+    await expect(alice.locator('#msgInput')).toBeEnabled({ timeout: PEER_TIMEOUT });
+
+    // Bob navigates away, closing the WebRTC connection
+    await bob.goto('about:blank');
+    await ctx2.close();
+
+    // Alice's controls should re-enable
+    await expect(alice.locator('#statusText')).toHaveText('Disconnected', { timeout: PEER_TIMEOUT });
+    await expect(alice.locator('#msgInput')).toBeDisabled();
+    await expect(alice.locator('#sendBtn')).toBeDisabled();
+    await expect(alice.locator('#connectBtn')).toBeEnabled();
+    await expect(alice.locator('#remoteIdInput')).toBeEnabled();
+    await expect(alice.locator('.msg-system').last()).toContainText('Peer disconnected');
+
+    await ctx1.close();
+  });
+
+  test('encryption badge deactivates on disconnect', async ({ browser }) => {
+    const ctx1 = await browser.newContext();
+    const ctx2 = await browser.newContext();
+    const alice = await ctx1.newPage();
+    const bob = await ctx2.newPage();
+
+    await alice.goto(BASE + PEER_PARAMS);
+    await bob.goto(BASE + PEER_PARAMS);
+
+    const aliceId = await waitForPeerId(alice);
+    await waitForPeerId(bob);
+
+    await bob.locator('#remoteIdInput').fill(aliceId);
+    await bob.locator('#connectBtn').click();
+    await expect(alice.locator('#encBadge')).toHaveClass(/active/, { timeout: PEER_TIMEOUT });
+
+    await bob.goto('about:blank');
+    await ctx2.close();
+    await expect(alice.locator('#encBadge')).not.toHaveClass(/active/, { timeout: PEER_TIMEOUT });
+
+    await ctx1.close();
+  });
+
+  test('can reconnect to a new peer after disconnect', async ({ browser }) => {
+    const ctx1 = await browser.newContext();
+    const ctx2 = await browser.newContext();
+    const ctx3 = await browser.newContext();
+    const alice = await ctx1.newPage();
+    const bob = await ctx2.newPage();
+
+    await alice.goto(BASE + PEER_PARAMS);
+    await bob.goto(BASE + PEER_PARAMS);
+
+    const aliceId = await waitForPeerId(alice);
+    await waitForPeerId(bob);
+
+    // Connect to Bob
+    await bob.locator('#remoteIdInput').fill(aliceId);
+    await bob.locator('#connectBtn').click();
+    await expect(alice.locator('#encBadge')).toHaveClass(/active/, { timeout: PEER_TIMEOUT });
+
+    // Bob disconnects
+    await bob.goto('about:blank');
+    await ctx2.close();
+    await expect(alice.locator('#connectBtn')).toBeEnabled({ timeout: PEER_TIMEOUT });
+
+    // Charlie connects to Alice
+    const charlie = await ctx3.newPage();
+    await charlie.goto(BASE + PEER_PARAMS);
+    await waitForPeerId(charlie);
+
+    await charlie.locator('#remoteIdInput').fill(aliceId);
+    await charlie.locator('#connectBtn').click();
+    await expect(alice.locator('#encBadge')).toHaveClass(/active/, { timeout: PEER_TIMEOUT });
+    await expect(charlie.locator('#encBadge')).toHaveClass(/active/, { timeout: PEER_TIMEOUT });
+
+    await ctx1.close();
+    await ctx3.close();
+  });
+});
+
+// ── Message Resilience ──
+
+test.describe.serial('Message Resilience', () => {
+  test.setTimeout(60_000);
+
+  test('special characters and HTML are escaped in messages', async ({ browser }) => {
+    const ctx1 = await browser.newContext();
+    const ctx2 = await browser.newContext();
+    const alice = await ctx1.newPage();
+    const bob = await ctx2.newPage();
+
+    await alice.goto(BASE + PEER_PARAMS);
+    await bob.goto(BASE + PEER_PARAMS);
+
+    const aliceId = await waitForPeerId(alice);
+    await waitForPeerId(bob);
+
+    await bob.locator('#remoteIdInput').fill(aliceId);
+    await bob.locator('#connectBtn').click();
+    await expect(alice.locator('#msgInput')).toBeEnabled({ timeout: PEER_TIMEOUT });
+
+    const payload = '<img src=x onerror=alert(1)>&"\'<b>bold</b>';
+    await alice.locator('#msgInput').fill(payload);
+    await alice.locator('#sendBtn').click();
+
+    // Should render as text, not HTML
+    const bubble = bob.locator('.msg.their .msg-bubble');
+    await expect(bubble).toContainText('<img', { timeout: 10_000 });
+    // Should not have any child elements (just text node)
+    const childCount = await bubble.evaluate(el => el.children.length);
+    expect(childCount).toBe(0);
+
+    await ctx1.close();
+    await ctx2.close();
+  });
+
+  test('unicode and emoji messages work', async ({ browser }) => {
+    const ctx1 = await browser.newContext();
+    const ctx2 = await browser.newContext();
+    const alice = await ctx1.newPage();
+    const bob = await ctx2.newPage();
+
+    await alice.goto(BASE + PEER_PARAMS);
+    await bob.goto(BASE + PEER_PARAMS);
+
+    const aliceId = await waitForPeerId(alice);
+    await waitForPeerId(bob);
+
+    await bob.locator('#remoteIdInput').fill(aliceId);
+    await bob.locator('#connectBtn').click();
+    await expect(alice.locator('#msgInput')).toBeEnabled({ timeout: PEER_TIMEOUT });
+
+    const unicodeMsg = '你好世界 🚀🔥 مرحبا';
+    await alice.locator('#msgInput').fill(unicodeMsg);
+    await alice.locator('#sendBtn').click();
+
+    await expect(bob.locator('.msg.their .msg-bubble')).toContainText(unicodeMsg, { timeout: 10_000 });
+
+    await ctx1.close();
+    await ctx2.close();
+  });
+
+  test('multiple rapid messages are all delivered', async ({ browser }) => {
+    const ctx1 = await browser.newContext();
+    const ctx2 = await browser.newContext();
+    const alice = await ctx1.newPage();
+    const bob = await ctx2.newPage();
+
+    await alice.goto(BASE + PEER_PARAMS);
+    await bob.goto(BASE + PEER_PARAMS);
+
+    const aliceId = await waitForPeerId(alice);
+    await waitForPeerId(bob);
+
+    await bob.locator('#remoteIdInput').fill(aliceId);
+    await bob.locator('#connectBtn').click();
+    await expect(alice.locator('#msgInput')).toBeEnabled({ timeout: PEER_TIMEOUT });
+
+    // Send 10 messages in quick succession
+    for (let i = 0; i < 10; i++) {
+      await alice.locator('#msgInput').fill(`Msg ${i}`);
+      await alice.locator('#sendBtn').click();
+    }
+
+    // All 10 should arrive at Bob's side
+    await expect(bob.locator('.msg.their .msg-bubble')).toHaveCount(10, { timeout: 15_000 });
+
+    await ctx1.close();
+    await ctx2.close();
+  });
+
+  test('message input clears and refocuses after send', async ({ browser }) => {
+    const ctx1 = await browser.newContext();
+    const ctx2 = await browser.newContext();
+    const alice = await ctx1.newPage();
+    const bob = await ctx2.newPage();
+
+    await alice.goto(BASE + PEER_PARAMS);
+    await bob.goto(BASE + PEER_PARAMS);
+
+    const aliceId = await waitForPeerId(alice);
+    await waitForPeerId(bob);
+
+    await bob.locator('#remoteIdInput').fill(aliceId);
+    await bob.locator('#connectBtn').click();
+    await expect(alice.locator('#msgInput')).toBeEnabled({ timeout: PEER_TIMEOUT });
+
+    await alice.locator('#msgInput').fill('Clear test');
+    await alice.locator('#sendBtn').click();
+
+    await expect(alice.locator('#msgInput')).toHaveValue('');
+    await expect(alice.locator('#msgInput')).toBeFocused();
+
+    await ctx1.close();
+    await ctx2.close();
+  });
+
+  test('typing indicator disappears after timeout', async ({ browser }) => {
+    const ctx1 = await browser.newContext();
+    const ctx2 = await browser.newContext();
+    const alice = await ctx1.newPage();
+    const bob = await ctx2.newPage();
+
+    await alice.goto(BASE + PEER_PARAMS);
+    await bob.goto(BASE + PEER_PARAMS);
+
+    const aliceId = await waitForPeerId(alice);
+    await waitForPeerId(bob);
+
+    await bob.locator('#remoteIdInput').fill(aliceId);
+    await bob.locator('#connectBtn').click();
+    await expect(alice.locator('#msgInput')).toBeEnabled({ timeout: PEER_TIMEOUT });
+
+    await alice.locator('#msgInput').pressSequentially('hi');
+    await expect(bob.locator('#typingIndicator')).toContainText('typing', { timeout: 5_000 });
+
+    // Should disappear after ~2.5s
+    await expect(bob.locator('#typingIndicator')).toHaveText('', { timeout: 5_000 });
+
+    await ctx1.close();
+    await ctx2.close();
+  });
+
+  test('typing indicator clears when message arrives', async ({ browser }) => {
+    const ctx1 = await browser.newContext();
+    const ctx2 = await browser.newContext();
+    const alice = await ctx1.newPage();
+    const bob = await ctx2.newPage();
+
+    await alice.goto(BASE + PEER_PARAMS);
+    await bob.goto(BASE + PEER_PARAMS);
+
+    const aliceId = await waitForPeerId(alice);
+    await waitForPeerId(bob);
+
+    await bob.locator('#remoteIdInput').fill(aliceId);
+    await bob.locator('#connectBtn').click();
+    await expect(alice.locator('#msgInput')).toBeEnabled({ timeout: PEER_TIMEOUT });
+
+    // Alice types then sends
+    await alice.locator('#msgInput').pressSequentially('hey');
+    await expect(bob.locator('#typingIndicator')).toContainText('typing', { timeout: 5_000 });
+
+    await alice.locator('#msgInput').press('Enter');
+    // After message arrives, typing indicator should clear
+    await expect(bob.locator('.msg.their .msg-bubble')).toContainText('hey', { timeout: 10_000 });
+    await expect(bob.locator('#typingIndicator')).toHaveText('');
+
+    await ctx1.close();
+    await ctx2.close();
+  });
+});
+
+// ── Bidirectional Connection ──
+
+test.describe.serial('Bidirectional Connection', () => {
+  test.setTimeout(60_000);
+
+  test('receiver (Alice) can also initiate messages', async ({ browser }) => {
+    const ctx1 = await browser.newContext();
+    const ctx2 = await browser.newContext();
+    const alice = await ctx1.newPage();
+    const bob = await ctx2.newPage();
+
+    await alice.goto(BASE + PEER_PARAMS);
+    await bob.goto(BASE + PEER_PARAMS);
+
+    const aliceId = await waitForPeerId(alice);
+    await waitForPeerId(bob);
+
+    // Bob connects to Alice (Alice is the receiver)
+    await bob.locator('#remoteIdInput').fill(aliceId);
+    await bob.locator('#connectBtn').click();
+    await expect(alice.locator('#msgInput')).toBeEnabled({ timeout: PEER_TIMEOUT });
+
+    // Alice (receiver) sends the FIRST message
+    await alice.locator('#msgInput').fill('Receiver says hi!');
+    await alice.locator('#sendBtn').click();
+    await expect(bob.locator('.msg.their .msg-bubble')).toContainText('Receiver says hi!', { timeout: 10_000 });
+
+    await ctx1.close();
+    await ctx2.close();
+  });
+
+  test('incoming connection shows system message', async ({ browser }) => {
+    const ctx1 = await browser.newContext();
+    const ctx2 = await browser.newContext();
+    const alice = await ctx1.newPage();
+    const bob = await ctx2.newPage();
+
+    await alice.goto(BASE + PEER_PARAMS);
+    await bob.goto(BASE + PEER_PARAMS);
+
+    const aliceId = await waitForPeerId(alice);
+    await waitForPeerId(bob);
+
+    await bob.locator('#remoteIdInput').fill(aliceId);
+    await bob.locator('#connectBtn').click();
+    await expect(alice.locator('#encBadge')).toHaveClass(/active/, { timeout: PEER_TIMEOUT });
+
+    // Alice (receiver) should see "Incoming connection from <bob's id>"
+    const systemMsgs = await alice.locator('.msg-system').allTextContents();
+    const hasIncoming = systemMsgs.some(m => m.includes('Incoming connection'));
+    expect(hasIncoming).toBe(true);
+
+    await ctx1.close();
+    await ctx2.close();
+  });
+});
+
 // ── Two-Peer Chat (serial to avoid PeerJS rate limits) ──
 
 test.describe.serial('Two-Peer Chat', () => {
