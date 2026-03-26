@@ -23,6 +23,7 @@
       --yellow: #fbbf24;
       --red: #f87171;
       --radius: 10px;
+      --sidebar-w: 280px;
     }
 
     body {
@@ -36,18 +37,195 @@
       overflow: hidden;
     }
 
+    /* ── App layout ── */
+    .app-layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .sidebar-header h2 {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .sidebar-header button {
+      font-size: 12px;
+      padding: 5px 10px;
+    }
+
+    .sidebar-id {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    .sidebar-id .id-value {
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      color: var(--accent);
+      user-select: all;
+      font-size: 11px;
+    }
+
+    .sidebar-id-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .sidebar-id-row button {
+      font-size: 10px;
+      padding: 2px 6px;
+    }
+
+    .username-row {
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .username-row input {
+      width: 100%;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 6px 10px;
+      color: var(--text);
+      font-size: 12px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .username-row input:focus { border-color: var(--accent); }
+    .username-row input::placeholder { color: var(--text-dim); }
+
+    .room-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .room-list::-webkit-scrollbar { width: 4px; }
+    .room-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .room-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      gap: 10px;
+      transition: background 0.15s;
+    }
+
+    .room-item:hover { background: var(--surface-2); }
+    .room-item.active { background: var(--surface-2); border-left: 3px solid var(--accent); padding-left: 13px; }
+
+    .room-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: var(--text-dim);
+    }
+
+    .room-dot.connected { background: var(--green); }
+    .room-dot.connecting { background: var(--yellow); }
+
+    .room-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .room-name {
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .room-preview {
+      font-size: 11px;
+      color: var(--text-dim);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .unread-badge {
+      background: var(--accent);
+      color: #fff;
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .room-close {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 16px;
+      padding: 0 4px;
+      cursor: pointer;
+      flex-shrink: 0;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .room-item:hover .room-close { opacity: 1; }
+    .room-close:hover { color: var(--red); }
+
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 49;
+    }
+
+    .sidebar-backdrop.active { display: block; }
+
+    /* ── Main content ── */
     main {
       display: flex;
       flex-direction: column;
       flex: 1;
       overflow: hidden;
+      min-width: 0;
     }
 
     /* ── Header ── */
     .header {
       display: flex;
       align-items: center;
-      justify-content: space-between;
       padding: 14px 20px;
       background: var(--surface);
       border-bottom: 1px solid var(--border);
@@ -55,11 +233,42 @@
       gap: 12px;
     }
 
-    .header h1 {
+    .sidebar-toggle {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 18px;
+      padding: 4px;
+      cursor: pointer;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .sidebar-toggle:hover { color: var(--accent); }
+
+    .sidebar-toggle .notif-dot {
+      display: none;
+      position: absolute;
+      top: 2px;
+      right: 0;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--red);
+    }
+
+    .sidebar-toggle .notif-dot.active { display: block; }
+
+    .header-title {
       font-size: 16px;
       font-weight: 700;
       letter-spacing: 0.5px;
       white-space: nowrap;
+      flex: 1;
+      margin: 0;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .status {
@@ -95,38 +304,6 @@
       flex-wrap: wrap;
     }
 
-    .id-display {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 8px 12px;
-      font-size: 13px;
-      flex: 1;
-      min-width: 0;
-    }
-
-    .id-display label {
-      color: var(--text-dim);
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      font-weight: 600;
-      flex-shrink: 0;
-    }
-
-    .id-display .id-value {
-      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
-      font-size: 13px;
-      color: var(--accent);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      user-select: all;
-    }
-
     .connect-group {
       display: flex;
       gap: 8px;
@@ -147,13 +324,8 @@
       transition: border-color 0.2s;
     }
 
-    input[type="text"]:focus {
-      border-color: var(--accent);
-    }
-
-    input[type="text"]::placeholder {
-      color: var(--text-dim);
-    }
+    input[type="text"]:focus { border-color: var(--accent); }
+    input[type="text"]::placeholder { color: var(--text-dim); }
 
     button {
       background: var(--accent);
@@ -180,9 +352,7 @@
       color: var(--text);
     }
 
-    button.secondary:hover {
-      background: var(--border);
-    }
+    button.secondary:hover { background: var(--border); }
 
     /* ── Messages ── */
     .messages {
@@ -321,22 +491,9 @@
       animation: fadeIn 0.2s ease;
     }
 
-    .qr-modal h2 {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .qr-modal canvas {
-      border-radius: 12px;
-    }
-
-    .qr-modal p {
-      font-size: 12px;
-      color: var(--text-dim);
-      text-align: center;
-      line-height: 1.5;
-    }
+    .qr-modal h2 { font-size: 15px; font-weight: 700; color: var(--text); }
+    .qr-modal canvas { border-radius: 12px; }
+    .qr-modal p { font-size: 12px; color: var(--text-dim); text-align: center; line-height: 1.5; }
 
     /* ── Chat input ── */
     .chat-input {
@@ -348,15 +505,8 @@
       flex-shrink: 0;
     }
 
-    .chat-input input[type="text"] {
-      font-size: 14px;
-      padding: 10px 14px;
-    }
-
-    .chat-input button {
-      padding: 10px 24px;
-      font-size: 14px;
-    }
+    .chat-input input[type="text"] { font-size: 14px; padding: 10px 14px; }
+    .chat-input button { padding: 10px 24px; font-size: 14px; }
 
     /* ── Empty state ── */
     .empty-state {
@@ -371,11 +521,7 @@
       padding: 40px 20px;
     }
 
-    .empty-state p {
-      font-size: 14px;
-      max-width: 360px;
-      line-height: 1.5;
-    }
+    .empty-state p { font-size: 14px; max-width: 360px; line-height: 1.5; }
 
     .empty-state .step {
       font-size: 13px;
@@ -383,19 +529,29 @@
       text-align: left;
     }
 
-    .empty-state .step strong {
-      color: var(--text);
-    }
+    .empty-state .step strong { color: var(--text); }
 
     /* ── Responsive ── */
     @media (max-width: 520px) {
+      .sidebar {
+        position: fixed;
+        top: 0; left: 0; bottom: 0;
+        width: 85vw;
+        max-width: 320px;
+        z-index: 50;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+      }
+
+      .sidebar.open { transform: translateX(0); }
+
       .header {
         padding: 10px 12px;
         padding-top: calc(10px + env(safe-area-inset-top, 0px));
         gap: 8px;
       }
 
-      .header h1 { font-size: 14px; }
+      .header-title { font-size: 14px; }
 
       .encryption-badge span { display: none; }
       .encryption-badge { padding: 3px 6px; gap: 0; }
@@ -408,26 +564,11 @@
 
       .connect-bar.hidden-connected { display: none; }
 
-      .id-display {
-        width: 100%;
-        padding: 10px 12px;
-      }
+      .connect-group { min-width: 0; width: 100%; }
 
-      .connect-group {
-        min-width: 0;
-        width: 100%;
-      }
-
-      .messages {
-        padding: 12px;
-      }
-
+      .messages { padding: 12px; }
       .msg { max-width: 88%; }
-
-      .msg-bubble {
-        font-size: 15px;
-        padding: 10px 12px;
-      }
+      .msg-bubble { font-size: 15px; padding: 10px 12px; }
 
       .chat-input {
         padding: 10px 12px;
@@ -435,62 +576,97 @@
         gap: 6px;
       }
 
-      .typing-indicator {
-        padding: 2px 12px;
-        min-height: 20px;
-      }
+      .typing-indicator { padding: 2px 12px; min-height: 20px; }
 
-      /* Prevent iOS zoom on focus — inputs must be >= 16px */
       input[type="text"] { font-size: 16px; }
       .chat-input input[type="text"] { font-size: 16px; }
 
-      /* Larger touch targets */
-      button {
-        min-height: 44px;
-        padding: 10px 16px;
-      }
+      button { min-height: 44px; padding: 10px 16px; }
+      .chat-input button { padding: 10px 20px; font-size: 15px; }
+      button.secondary { min-height: 36px; }
 
-      .chat-input button {
-        padding: 10px 20px;
-        font-size: 15px;
-      }
+      .sidebar-header button { min-height: 36px; }
+      .sidebar-id-row button { min-height: 36px; min-width: 36px; padding: 4px 10px; font-size: 11px; }
+    }
 
-      button.secondary {
-        min-height: 36px;
-      }
+    @media (min-width: 521px) {
+      .sidebar-toggle { display: none; }
+      .sidebar-backdrop { display: none !important; }
     }
   </style>
-  <link rel="icon" type="image/png" sizes="16x16" href="data:image/png;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAEKADAAQAAAABAAAAEAAAAAD/7QA4UGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAAA4QklNBCUAAAAAABDUHYzZjwCyBOmACZjs+EJ+/8AAEQgAEAAQAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/bAEMAAgICAgICAwICAwUDAwMFBgUFBQUGCAYGBgYGCAoICAgICAgKCgoKCgoKCgwMDAwMDA4ODg4ODw8PDw8PDw8PD//bAEMBAgICBAQEBwQEBxALCQsQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEP/dAAQAAf/aAAwDAQACEQMRAD8A/GDRNAm1pztnjt4w2zLhmZnwSFVVBJPHsPek1zQZtEnETzJOpwNyhlIJAO1lYAgj8ak0HxHdaA0j20MUzMVdPNBPlyL/ABrtKnOMjrjvjIFM1vX7jXZBPcxqkrMXkKkkOxGAeSSOB6nJyT1rrh7L2Lv8X/DHLH2vtHf4T//Z">
-  <link rel="apple-touch-icon" sizes="192x192" href="data:image/png;base64,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">
+  <link rel="icon" type="image/png" sizes="16x16" href="data:image/png;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAEKADAAQAAAABAAAAEAAAAAD/7QA4UGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAAA4QklNBCUAAAAAABDUHYzZjwCyBOmACZjs+EJ+/8AAEQgAEAAQAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/bAEMAAgICAgICAwICAwUDAwMFBgUFBQUGCAYGBgYGCAoICAgICAgKCgoKCgoKCgwMDAwMDA4ODg4ODw8PDw8PDw8PD//bAEMBAgICBAQEBwQEBxALCQsQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEP/dAAQAAf/aAAwDAQACEQMRAD8A/GDRNAm1pztnjt4w2zLhmZnwSFVVBJPHsPek1zQZtEnETzJOpwNyBlIJAO1lYAgj8ak0HxHdaA0j20MUzMVdPNBPlyL/ABrtKnOMjrjvjIFM1vX7jXZBPcxqkrMXkKkkOxGAeSSOB6nJyT1rrh7L2Lv8X/DHLH2vtHf4T//Z">
+  <link rel="apple-touch-icon" sizes="192x192" href="data:image/png;base64,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">
 </head>
 <body>
 
-  <!-- Header -->
-  <header class="header">
-    <h1>P2P Chat</h1>
-    <div class="encryption-badge" id="encBadge">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      <span>E2E Encrypted</span>
-    </div>
-    <div class="status">
-      <span class="status-dot" id="statusDot"></span>
-      <span id="statusText">Initializing...</span>
-    </div>
-  </header>
+  <div class="app-layout">
 
-  <main>
-  <!-- Connect bar -->
-  <div class="connect-bar" id="connectBar">
-    <div class="id-display">
-      <label>Your ID</label>
-      <span class="id-value" id="myId">...</span>
-      <button class="secondary" id="copyBtn" title="Copy your Peer ID" disabled>Copy</button>
-      <button class="secondary" id="qrBtn" title="Show QR code" disabled>QR</button>
-    </div>
-    <div class="connect-group">
-      <input type="text" id="remoteIdInput" placeholder="Enter peer's ID" aria-label="Remote peer ID" autocomplete="off" spellcheck="false">
-      <button id="connectBtn" disabled>Connect</button>
-    </div>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h2>Chats</h2>
+        <button id="newChatBtn" title="Start a new chat">+ New</button>
+      </div>
+      <div class="sidebar-id">
+        <div>Your ID</div>
+        <div class="sidebar-id-row">
+          <span class="id-value" id="myId">...</span>
+          <button class="secondary" id="copyBtn" title="Copy your Peer ID" disabled>Copy</button>
+          <button class="secondary" id="qrBtn" title="Show QR code" disabled>QR</button>
+        </div>
+      </div>
+      <div class="username-row">
+        <input type="text" id="usernameInput" placeholder="Your display name (optional)" aria-label="Display name" autocomplete="off" spellcheck="false" maxlength="30">
+      </div>
+      <div class="room-list" id="roomList"></div>
+    </aside>
+
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- Main content -->
+    <main>
+      <header class="header">
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">☰<span class="notif-dot" id="notifDot"></span></button>
+        <h1 class="header-title" id="headerTitle">P2P Chat</h1>
+        <div class="encryption-badge" id="encBadge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span>E2E Encrypted</span>
+        </div>
+        <div class="status">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusText">Initializing...</span>
+        </div>
+      </header>
+
+      <!-- Connect bar (shown for new chat) -->
+      <div class="connect-bar" id="connectBar">
+        <div class="connect-group">
+          <input type="text" id="remoteIdInput" placeholder="Enter peer's ID to connect" aria-label="Remote peer ID" autocomplete="off" spellcheck="false">
+          <button id="connectBtn" disabled>Connect</button>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="messages" id="messages">
+        <div class="empty-state" id="emptyState">
+          <p>No chats yet.</p>
+          <div class="step">
+            <strong>1.</strong> Copy your ID and share it with a friend<br>
+            <strong>2.</strong> Or click <strong>+ New</strong> and paste their ID<br>
+            <strong>3.</strong> Start chatting peer-to-peer with E2E encryption
+          </div>
+        </div>
+      </div>
+
+      <!-- Typing indicator -->
+      <div class="typing-indicator" id="typingIndicator"></div>
+
+      <!-- Chat input -->
+      <div class="chat-input">
+        <input type="text" id="msgInput" placeholder="Type a message..." aria-label="Message text" autocomplete="off" disabled>
+        <button id="sendBtn" disabled>Send</button>
+      </div>
+    </main>
   </div>
 
   <!-- QR overlay -->
@@ -503,28 +679,6 @@
     </div>
   </div>
 
-  <!-- Messages -->
-  <div class="messages" id="messages">
-    <div class="empty-state" id="emptyState">
-      <p>No connection yet.</p>
-      <div class="step">
-        <strong>1.</strong> Copy your ID and share it with a friend<br>
-        <strong>2.</strong> Or paste their ID above and click Connect<br>
-        <strong>3.</strong> Start chatting peer-to-peer
-      </div>
-    </div>
-  </div>
-
-  <!-- Typing indicator -->
-  <div class="typing-indicator" id="typingIndicator"></div>
-
-  <!-- Chat input -->
-  <div class="chat-input">
-    <input type="text" id="msgInput" placeholder="Type a message..." aria-label="Message text" autocomplete="off" disabled>
-    <button id="sendBtn" disabled>Send</button>
-  </div>
-  </main>
-
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <script src="https://unpkg.com/qrcode-generator@1.4.4/qrcode.js"></script>
   <script>
@@ -533,31 +687,40 @@
 
       // ── DOM refs ──
       const $ = (id) => document.getElementById(id);
-      const myIdEl       = $('myId');
-      const copyBtn      = $('copyBtn');
+      const myIdEl        = $('myId');
+      const copyBtn       = $('copyBtn');
       const remoteIdInput = $('remoteIdInput');
-      const connectBtn   = $('connectBtn');
-      const messagesEl   = $('messages');
-      const emptyState   = $('emptyState');
-      const typingEl     = $('typingIndicator');
-      const msgInput     = $('msgInput');
-      const sendBtn      = $('sendBtn');
-      const statusDot    = $('statusDot');
-      const statusText   = $('statusText');
-      const encBadge     = $('encBadge');
-      const connectBar   = $('connectBar');
-      const qrBtn        = $('qrBtn');
-      const qrOverlay    = $('qrOverlay');
-      const qrCanvas     = $('qrCanvas');
-      const qrCloseBtn   = $('qrCloseBtn');
+      const connectBtn    = $('connectBtn');
+      const messagesEl    = $('messages');
+      const emptyState    = $('emptyState');
+      const typingEl      = $('typingIndicator');
+      const msgInput      = $('msgInput');
+      const sendBtn       = $('sendBtn');
+      const statusDot     = $('statusDot');
+      const statusText    = $('statusText');
+      const encBadge      = $('encBadge');
+      const connectBar    = $('connectBar');
+      const qrBtn         = $('qrBtn');
+      const qrOverlay     = $('qrOverlay');
+      const qrCanvas      = $('qrCanvas');
+      const qrCloseBtn    = $('qrCloseBtn');
+      const sidebar       = $('sidebar');
+      const sidebarToggle = $('sidebarToggle');
+      const sidebarBackdrop = $('sidebarBackdrop');
+      const roomListEl    = $('roomList');
+      const headerTitle   = $('headerTitle');
+      const notifDot      = $('notifDot');
+      const usernameInput = $('usernameInput');
+      const newChatBtn    = $('newChatBtn');
 
       // ── State ──
       let peer = null;
-      let conn = null;
+      let rooms = [];
+      let activeRoomId = null;
       let typingTimeout = null;
-      let remoteTypingTimeout = null;
-      let myKeyPair = null;
-      let sharedKey = null;
+      let myUsername = localStorage.getItem('p2p_username') || '';
+
+      usernameInput.value = myUsername;
 
       // ── E2E Crypto (ECDH + AES-256-GCM) ──
       const ECDH_PARAMS = { name: 'ECDH', namedCurve: 'P-256' };
@@ -573,8 +736,7 @@
       }
 
       async function importPublicKey(rawArray) {
-        const bytes = new Uint8Array(rawArray);
-        return crypto.subtle.importKey('raw', bytes, ECDH_PARAMS, true, []);
+        return crypto.subtle.importKey('raw', new Uint8Array(rawArray), ECDH_PARAMS, true, []);
       }
 
       async function deriveSharedKey(privateKey, remotePublicKey) {
@@ -587,81 +749,207 @@
         );
       }
 
-      async function encryptMessage(text) {
+      async function encryptMessage(text, key) {
         const iv = crypto.getRandomValues(new Uint8Array(12));
         const encoded = new TextEncoder().encode(text);
-        const ciphertext = await crypto.subtle.encrypt(
-          { name: 'AES-GCM', iv },
-          sharedKey,
-          encoded
-        );
-        return {
-          iv: Array.from(iv),
-          ct: Array.from(new Uint8Array(ciphertext))
-        };
+        const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
+        return { iv: Array.from(iv), ct: Array.from(new Uint8Array(ciphertext)) };
       }
 
-      async function decryptMessage(payload) {
+      async function decryptMessage(payload, key) {
         const iv = new Uint8Array(payload.iv);
         const ct = new Uint8Array(payload.ct);
-        const decrypted = await crypto.subtle.decrypt(
-          { name: 'AES-GCM', iv },
-          sharedKey,
-          ct
-        );
+        const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
         return new TextDecoder().decode(decrypted);
       }
 
       // ── Helpers ──
-      function escapeHtml(str) {
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-      }
-
       function formatTime(ts) {
-        const d = new Date(ts);
-        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       }
 
-      function setStatus(state, text) {
-        statusDot.className = 'status-dot ' + state;
-        statusText.textContent = text;
+      function isMobile() { return window.innerWidth <= 520; }
+
+      function getActiveRoom() { return rooms.find(r => r.id === activeRoomId) || null; }
+
+      function roomDisplayName(room) {
+        return room.remoteName || room.remotePeerId.slice(0, 12) + '…';
       }
 
-      function isMobile() {
-        return window.innerWidth <= 520;
+      function ownDisplayName() { return myUsername || 'You'; }
+      function theirDisplayName(room) { return room.remoteName || 'Them'; }
+
+      // ── Room factory ──
+      function createRoom(remotePeerId) {
+        const existing = rooms.find(r => r.remotePeerId === remotePeerId);
+        if (existing) return existing;
+
+        const room = {
+          id: 'room_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+          conn: null,
+          sharedKey: null,
+          myKeyPair: null,
+          keyPairReady: null,
+          remotePeerId,
+          remoteName: '',
+          history: [],
+          unreadCount: 0,
+          isEncrypted: false,
+          remoteTypingTimeout: null,
+          isRemoteTyping: false,
+        };
+        room.keyPairReady = generateKeyPair().then(kp => { room.myKeyPair = kp; return kp; });
+        rooms.push(room);
+        return room;
       }
 
-      function setChatEnabled(enabled) {
-        msgInput.disabled = !enabled;
-        sendBtn.disabled = !enabled;
-        if (enabled) {
-          msgInput.focus();
-          if (isMobile()) connectBar.classList.add('hidden-connected');
-        } else {
-          connectBar.classList.remove('hidden-connected');
+      // ── Sidebar rendering ──
+      function renderSidebar() {
+        roomListEl.innerHTML = '';
+        let totalUnread = 0;
+        for (const room of rooms) {
+          totalUnread += room.unreadCount;
+          const el = document.createElement('div');
+          el.className = 'room-item' + (room.id === activeRoomId ? ' active' : '');
+          el.dataset.roomId = room.id;
+
+          const dot = document.createElement('span');
+          dot.className = 'room-dot';
+          if (room.isEncrypted && room.conn && room.conn.open) dot.classList.add('connected');
+          else if (room.conn && room.conn.open) dot.classList.add('connecting');
+
+          const info = document.createElement('div');
+          info.className = 'room-info';
+          const name = document.createElement('div');
+          name.className = 'room-name';
+          name.textContent = roomDisplayName(room);
+          const preview = document.createElement('div');
+          preview.className = 'room-preview';
+          const last = room.history.filter(h => h.kind === 'message').pop();
+          preview.textContent = last ? (last.isOwn ? 'You: ' : '') + last.text.slice(0, 30) : 'No messages yet';
+          info.appendChild(name);
+          info.appendChild(preview);
+
+          el.appendChild(dot);
+          el.appendChild(info);
+
+          if (room.unreadCount > 0) {
+            const badge = document.createElement('span');
+            badge.className = 'unread-badge';
+            badge.textContent = room.unreadCount;
+            el.appendChild(badge);
+          }
+
+          const closeBtn = document.createElement('button');
+          closeBtn.className = 'room-close';
+          closeBtn.textContent = '×';
+          closeBtn.title = 'Close chat';
+          closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeRoom(room.id);
+          });
+          el.appendChild(closeBtn);
+
+          el.addEventListener('click', () => switchRoom(room.id));
+          roomListEl.appendChild(el);
         }
+
+        notifDot.classList.toggle('active', totalUnread > 0);
       }
 
-      // ── Messages UI ──
-      function addMessage(text, sender, isOwn) {
+      function removeRoom(roomId) {
+        const room = rooms.find(r => r.id === roomId);
+        if (room) {
+          if (room.conn && room.conn.open) room.conn.close();
+          clearTimeout(room.remoteTypingTimeout);
+        }
+        rooms = rooms.filter(r => r.id !== roomId);
+        if (activeRoomId === roomId) {
+          activeRoomId = rooms.length > 0 ? rooms[0].id : null;
+          if (activeRoomId) switchRoom(activeRoomId);
+          else showNewChatView();
+        }
+        renderSidebar();
+      }
+
+      // ── View management ──
+      function switchRoom(roomId) {
+        activeRoomId = roomId;
+        const room = getActiveRoom();
+        if (!room) return showNewChatView();
+
+        room.unreadCount = 0;
+        connectBar.style.display = 'none';
+        if (isMobile()) connectBar.classList.add('hidden-connected');
+
+        // Render history
+        messagesEl.innerHTML = '';
+        emptyState.style.display = 'none';
+        for (const entry of room.history) {
+          if (entry.kind === 'system') appendSystemEl(entry.text);
+          else appendMessageEl(entry.text, entry.sender, entry.isOwn);
+        }
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+
+        // Update header
+        headerTitle.textContent = roomDisplayName(room);
+        encBadge.classList.toggle('active', room.isEncrypted);
+        if (room.isEncrypted && room.conn && room.conn.open) {
+          setStatus('connected', 'Connected to ' + room.remotePeerId);
+        } else if (room.conn && room.conn.open) {
+          setStatus('connecting', 'Exchanging encryption keys...');
+        } else if (room.conn) {
+          setStatus('connecting', 'Connecting...');
+        } else {
+          setStatus('', 'Disconnected');
+        }
+
+        // Typing
+        typingEl.textContent = room.isRemoteTyping ? (theirDisplayName(room) + ' is typing...') : '';
+
+        // Chat input
+        const canChat = room.isEncrypted && room.conn && room.conn.open;
+        msgInput.disabled = !canChat;
+        sendBtn.disabled = !canChat;
+        if (canChat) msgInput.focus();
+
+        // Close sidebar on mobile
+        closeSidebar();
+        renderSidebar();
+      }
+
+      function showNewChatView() {
+        activeRoomId = null;
+        connectBar.style.display = '';
+        connectBar.classList.remove('hidden-connected');
+        messagesEl.innerHTML = '';
+        emptyState.style.display = '';
+        messagesEl.appendChild(emptyState);
+        headerTitle.textContent = 'P2P Chat';
+        encBadge.classList.remove('active');
+        setStatus('', 'Waiting for connection');
+        typingEl.textContent = '';
+        msgInput.disabled = true;
+        sendBtn.disabled = true;
+        remoteIdInput.value = '';
+        connectBtn.disabled = false;
+        renderSidebar();
+      }
+
+      // ── DOM helpers (append to visible DOM, not history) ──
+      function appendMessageEl(text, sender, isOwn) {
         emptyState.style.display = 'none';
         const wrapper = document.createElement('div');
         wrapper.className = 'msg ' + (isOwn ? 'own' : 'their');
-
         const senderEl = document.createElement('div');
         senderEl.className = 'msg-sender';
-        senderEl.textContent = isOwn ? 'You' : 'Them';
-
+        senderEl.textContent = sender;
         const bubble = document.createElement('div');
         bubble.className = 'msg-bubble';
         bubble.textContent = text;
-
         const time = document.createElement('div');
         time.className = 'msg-time';
         time.textContent = formatTime(Date.now());
-
         wrapper.appendChild(senderEl);
         wrapper.appendChild(bubble);
         wrapper.appendChild(time);
@@ -669,7 +957,7 @@
         messagesEl.scrollTop = messagesEl.scrollHeight;
       }
 
-      function addSystemMessage(text) {
+      function appendSystemEl(text) {
         emptyState.style.display = 'none';
         const el = document.createElement('div');
         el.className = 'msg-system';
@@ -678,98 +966,150 @@
         messagesEl.scrollTop = messagesEl.scrollHeight;
       }
 
-      // ── Typing indicator ──
-      function showRemoteTyping() {
-        typingEl.textContent = 'Peer is typing...';
-        clearTimeout(remoteTypingTimeout);
-        remoteTypingTimeout = setTimeout(() => {
-          typingEl.textContent = '';
+      // ── Room-aware message/system helpers ──
+      function addMessage(room, text, sender, isOwn) {
+        room.history.push({ kind: 'message', text, sender, isOwn, timestamp: Date.now() });
+        if (room.id === activeRoomId) appendMessageEl(text, sender, isOwn);
+        else room.unreadCount++;
+        renderSidebar();
+      }
+
+      function addSystemMessage(room, text) {
+        room.history.push({ kind: 'system', text, timestamp: Date.now() });
+        if (room.id === activeRoomId) appendSystemEl(text);
+        renderSidebar();
+      }
+
+      function setStatus(state, text) {
+        statusDot.className = 'status-dot ' + state;
+        statusText.textContent = text;
+      }
+
+      // ── Typing ──
+      function showRemoteTyping(room) {
+        room.isRemoteTyping = true;
+        clearTimeout(room.remoteTypingTimeout);
+        if (room.id === activeRoomId) {
+          typingEl.textContent = theirDisplayName(room) + ' is typing...';
+        }
+        room.remoteTypingTimeout = setTimeout(() => {
+          room.isRemoteTyping = false;
+          if (room.id === activeRoomId) typingEl.textContent = '';
         }, 2500);
       }
 
       function sendTypingSignal() {
-        if (conn && conn.open) {
-          conn.send({ type: 'typing' });
+        const room = getActiveRoom();
+        if (room && room.conn && room.conn.open) {
+          room.conn.send({ type: 'typing' });
         }
       }
 
       // ── Connection handling ──
-      function setupConnection(connection) {
-        conn = connection;
-        sharedKey = null;
-        encBadge.classList.remove('active');
-        setStatus('connecting', 'Connecting...');
+      function setupConnection(room) {
+        const conn = room.conn;
+        room.sharedKey = null;
+        room.isEncrypted = false;
+
+        if (room.id === activeRoomId) {
+          encBadge.classList.remove('active');
+          setStatus('connecting', 'Connecting...');
+        }
 
         let openHandled = false;
         const onOpen = async () => {
           if (openHandled) return;
           openHandled = true;
-          setStatus('connecting', 'Exchanging encryption keys...');
-          connectBtn.disabled = true;
-          remoteIdInput.disabled = true;
-          addSystemMessage('Connected to peer ' + conn.peer);
+          if (room.id === activeRoomId) setStatus('connecting', 'Exchanging encryption keys...');
+          addSystemMessage(room, 'Connected to peer ' + conn.peer);
 
-          // Send our public key
-          const pubKey = await exportPublicKey(myKeyPair.publicKey);
-          conn.send({ type: 'key-exchange', publicKey: pubKey });
+          if (room.keyPairReady) await room.keyPairReady;
+          const pubKey = await exportPublicKey(room.myKeyPair.publicKey);
+          conn.send({ type: 'key-exchange', publicKey: pubKey, username: myUsername });
         };
 
         conn.on('open', onOpen);
-        // For incoming connections, open may have already fired before we attached the handler
         if (conn.open) onOpen();
 
         conn.on('data', async (data) => {
           if (!data || !data.type) return;
 
-          // Key exchange
           if (data.type === 'key-exchange') {
             try {
+              if (room.keyPairReady) await room.keyPairReady;
               const remotePubKey = await importPublicKey(data.publicKey);
-              sharedKey = await deriveSharedKey(myKeyPair.privateKey, remotePubKey);
-              encBadge.classList.add('active');
-              setStatus('connected', 'Connected to ' + conn.peer);
-              setChatEnabled(true);
-              addSystemMessage('E2E encryption established');
+              room.sharedKey = await deriveSharedKey(room.myKeyPair.privateKey, remotePubKey);
+              room.isEncrypted = true;
+              if (data.username) room.remoteName = data.username;
+
+              if (room.id === activeRoomId) {
+                encBadge.classList.add('active');
+                setStatus('connected', 'Connected to ' + conn.peer);
+                headerTitle.textContent = roomDisplayName(room);
+                msgInput.disabled = false;
+                sendBtn.disabled = false;
+                msgInput.focus();
+                if (isMobile()) connectBar.classList.add('hidden-connected');
+              }
+              addSystemMessage(room, 'E2E encryption established');
+              renderSidebar();
             } catch (e) {
-              setStatus('error', 'Key exchange failed');
-              addSystemMessage('Encryption handshake failed: ' + e.message);
+              if (room.id === activeRoomId) setStatus('error', 'Key exchange failed');
+              addSystemMessage(room, 'Encryption handshake failed: ' + e.message);
+            }
+            return;
+          }
+
+          if (data.type === 'username-update') {
+            if (data.username !== undefined) {
+              room.remoteName = data.username;
+              if (room.id === activeRoomId) headerTitle.textContent = roomDisplayName(room);
+              renderSidebar();
             }
             return;
           }
 
           if (data.type === 'typing') {
-            showRemoteTyping();
+            showRemoteTyping(room);
             return;
           }
 
-          // Encrypted chat message
-          if (data.type === 'encrypted' && sharedKey) {
+          if (data.type === 'encrypted' && room.sharedKey) {
             try {
-              const text = await decryptMessage(data.payload);
-              addMessage(text, 'Them', false);
-              typingEl.textContent = '';
-              clearTimeout(remoteTypingTimeout);
+              const text = await decryptMessage(data.payload, room.sharedKey);
+              addMessage(room, text, theirDisplayName(room), false);
+              room.isRemoteTyping = false;
+              clearTimeout(room.remoteTypingTimeout);
+              if (room.id === activeRoomId) typingEl.textContent = '';
             } catch (e) {
-              addSystemMessage('Failed to decrypt message');
+              addSystemMessage(room, 'Failed to decrypt message');
             }
             return;
           }
         });
 
         conn.on('close', () => {
-          setStatus('', 'Disconnected');
-          setChatEnabled(false);
-          connectBtn.disabled = false;
-          remoteIdInput.disabled = false;
-          sharedKey = null;
-          encBadge.classList.remove('active');
-          addSystemMessage('Peer disconnected');
-          conn = null;
+          room.sharedKey = null;
+          room.isEncrypted = false;
+          room.conn = null;
+          room.isRemoteTyping = false;
+          clearTimeout(room.remoteTypingTimeout);
+          addSystemMessage(room, 'Peer disconnected');
+
+          if (room.id === activeRoomId) {
+            setStatus('', 'Disconnected');
+            encBadge.classList.remove('active');
+            msgInput.disabled = true;
+            sendBtn.disabled = true;
+            typingEl.textContent = '';
+            connectBar.classList.remove('hidden-connected');
+          }
+          renderSidebar();
         });
 
         conn.on('error', (err) => {
-          setStatus('error', 'Connection error');
-          addSystemMessage('Connection error: ' + err.message);
+          if (room.id === activeRoomId) setStatus('error', 'Connection error');
+          addSystemMessage(room, 'Connection error: ' + err.message);
         });
       }
 
@@ -807,35 +1147,55 @@
           copyBtn.disabled = false;
           connectBtn.disabled = false;
           qrBtn.disabled = false;
-          setStatus('', 'Waiting for connection');
+          if (!activeRoomId) setStatus('', 'Waiting for connection');
 
           // Auto-connect if opened via QR code / link with #peer= hash
           const hashParams = new URLSearchParams(window.location.hash.slice(1));
           const targetPeer = hashParams.get('peer');
           if (targetPeer && targetPeer !== id) {
             remoteIdInput.value = targetPeer;
-            // Clear the hash so refreshing doesn't re-trigger
             history.replaceState(null, '', window.location.pathname + window.location.search);
             connectBtn.click();
           }
         });
 
         peer.on('connection', (incoming) => {
-          if (conn && conn.open) {
+          // Check for existing room with this peer
+          let room = rooms.find(r => r.remotePeerId === incoming.peer);
+          if (room && room.conn && room.conn.open) {
+            // Already have an active connection to this peer — reject duplicate
             incoming.on('open', () => {
               incoming.send({ type: 'chat', text: '[Peer is already in a session]' });
               setTimeout(() => incoming.close(), 500);
             });
             return;
           }
-          setupConnection(incoming);
-          addSystemMessage('Incoming connection from ' + incoming.peer);
+
+          if (room) {
+            // Reconnect scenario — reuse existing room with new key pair
+            room.keyPairReady = generateKeyPair().then(kp => { room.myKeyPair = kp; return kp; });
+            room.conn = incoming;
+          } else {
+            room = createRoom(incoming.peer);
+            room.conn = incoming;
+          }
+
+          // Set up connection handlers SYNCHRONOUSLY to avoid missing events
+          setupConnection(room);
+          addSystemMessage(room, 'Incoming connection from ' + incoming.peer);
+          renderSidebar();
+
+          // Auto-switch to the new room
+          switchRoom(room.id);
         });
 
         peer.on('error', (err) => {
           if (err.type === 'peer-unavailable') {
             setStatus('error', 'Peer not found');
-            addSystemMessage('Peer not found — check the ID and try again');
+            // Show error in active room or as an alert
+            const room = getActiveRoom();
+            if (room) addSystemMessage(room, 'Peer not found — check the ID and try again');
+            else appendSystemEl('Peer not found — check the ID and try again');
             connectBtn.disabled = false;
           } else if (err.type === 'disconnected' || err.type === 'network') {
             setStatus('error', 'Network error — reconnecting...');
@@ -845,7 +1205,8 @@
             }, 3000);
           } else {
             setStatus('error', 'Error: ' + err.type);
-            addSystemMessage('Error: ' + err.message);
+            const room = getActiveRoom();
+            if (room) addSystemMessage(room, 'Error: ' + err.message);
           }
         });
 
@@ -859,7 +1220,30 @@
         });
       }
 
+      // ── Sidebar toggle ──
+      function openSidebar() {
+        sidebar.classList.add('open');
+        sidebarBackdrop.classList.add('active');
+      }
+
+      function closeSidebar() {
+        sidebar.classList.remove('open');
+        sidebarBackdrop.classList.remove('active');
+      }
+
+      sidebarToggle.addEventListener('click', () => {
+        sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+      });
+
+      sidebarBackdrop.addEventListener('click', closeSidebar);
+
       // ── Event listeners ──
+      newChatBtn.addEventListener('click', () => {
+        showNewChatView();
+        closeSidebar();
+        remoteIdInput.focus();
+      });
+
       copyBtn.addEventListener('click', () => {
         const id = myIdEl.textContent;
         if (!id || id === '...') return;
@@ -874,22 +1258,51 @@
         const remoteId = remoteIdInput.value.trim();
         if (!remoteId) return;
         if (remoteId === myIdEl.textContent) {
-          addSystemMessage('You cannot connect to yourself');
+          appendSystemEl('You cannot connect to yourself');
           return;
         }
-        if (conn && conn.open) {
-          addSystemMessage('Already connected — disconnect first');
+
+        // Check if room already exists for this peer
+        const existing = rooms.find(r => r.remotePeerId === remoteId);
+        if (existing && existing.conn && existing.conn.open) {
+          switchRoom(existing.id);
           return;
         }
+
         connectBtn.disabled = true;
-        const outgoing = peer.connect(remoteId, { reliable: true });
-        setupConnection(outgoing);
+
+        let room;
+        if (existing) {
+          // Reconnect — generate new key pair
+          room = existing;
+          room.keyPairReady = generateKeyPair().then(kp => { room.myKeyPair = kp; return kp; });
+        } else {
+          room = createRoom(remoteId);
+        }
+
+        room.conn = peer.connect(remoteId, { reliable: true });
+        setupConnection(room);
+        switchRoom(room.id);
       });
 
       remoteIdInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') connectBtn.click();
       });
 
+      // Username
+      usernameInput.addEventListener('input', () => {
+        myUsername = usernameInput.value.trim().slice(0, 30);
+        localStorage.setItem('p2p_username', myUsername);
+
+        // Broadcast to all connected rooms
+        for (const room of rooms) {
+          if (room.conn && room.conn.open) {
+            room.conn.send({ type: 'username-update', username: myUsername });
+          }
+        }
+      });
+
+      // Send message
       sendBtn.addEventListener('click', sendMessage);
       msgInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -897,6 +1310,21 @@
           sendMessage();
         }
       });
+
+      async function sendMessage() {
+        const room = getActiveRoom();
+        const text = msgInput.value.trim();
+        if (!text || !room || !room.conn || !room.conn.open || !room.sharedKey) return;
+        try {
+          const payload = await encryptMessage(text, room.sharedKey);
+          room.conn.send({ type: 'encrypted', payload });
+          addMessage(room, text, ownDisplayName(), true);
+          msgInput.value = '';
+          msgInput.focus();
+        } catch (e) {
+          addSystemMessage(room, 'Failed to encrypt message');
+        }
+      }
 
       // QR code
       qrBtn.addEventListener('click', () => {
@@ -918,18 +1346,13 @@
         ctx.fillStyle = '#000000';
         for (let r = 0; r < modules; r++) {
           for (let c = 0; c < modules; c++) {
-            if (qr.isDark(r, c)) {
-              ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
-            }
+            if (qr.isDark(r, c)) ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
           }
         }
         qrOverlay.classList.add('active');
       });
 
-      qrCloseBtn.addEventListener('click', () => {
-        qrOverlay.classList.remove('active');
-      });
-
+      qrCloseBtn.addEventListener('click', () => qrOverlay.classList.remove('active'));
       qrOverlay.addEventListener('click', (e) => {
         if (e.target === qrOverlay) qrOverlay.classList.remove('active');
       });
@@ -942,20 +1365,6 @@
         }
       });
 
-      async function sendMessage() {
-        const text = msgInput.value.trim();
-        if (!text || !conn || !conn.open || !sharedKey) return;
-        try {
-          const payload = await encryptMessage(text);
-          conn.send({ type: 'encrypted', payload });
-          addMessage(text, 'You', true);
-          msgInput.value = '';
-          msgInput.focus();
-        } catch (e) {
-          addSystemMessage('Failed to encrypt message');
-        }
-      }
-
       // ── Mobile: resize on virtual keyboard open/close ──
       if (window.visualViewport) {
         window.visualViewport.addEventListener('resize', () => {
@@ -965,10 +1374,7 @@
       }
 
       // ── Start ──
-      generateKeyPair().then((kp) => {
-        myKeyPair = kp;
-        initPeer();
-      });
+      initPeer();
     })();
   </script>
 </body>

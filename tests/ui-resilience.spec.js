@@ -1,5 +1,5 @@
 // @ts-check
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 const PEER_PARAMS = '?peerHost=127.0.0.1&peerPort=9000';
 const PEER_TIMEOUT = 30_000;
@@ -251,14 +251,14 @@ test.describe('Message Bubble Styles', () => {
 // ── Layout Styles ──
 
 test.describe('Layout Styles', () => {
-  test('header uses flexbox with space-between', async ({ page }) => {
+  test('header uses flexbox layout', async ({ page }) => {
     await page.goto('/' + PEER_PARAMS);
     const styles = await page.locator('.header').evaluate(el => {
       const s = getComputedStyle(el);
-      return { display: s.display, justifyContent: s.justifyContent };
+      return { display: s.display, alignItems: s.alignItems };
     });
     expect(styles.display).toBe('flex');
-    expect(styles.justifyContent).toBe('space-between');
+    expect(styles.alignItems).toBe('center');
   });
 
   test('chat input area has border-top separator', async ({ page }) => {

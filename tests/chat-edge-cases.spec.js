@@ -1,5 +1,5 @@
 // @ts-check
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 const BASE = 'http://127.0.0.1:3000';
 const PEER_PARAMS = '?peerHost=127.0.0.1&peerPort=9000';
@@ -59,7 +59,7 @@ test.describe('Connection Edge Cases', () => {
     await expect(page.locator('#connectBtn')).toBeDisabled();
   });
 
-  test('remote ID input disables when connected', async ({ browser }) => {
+  test('connect bar is hidden when connected', async ({ browser }) => {
     const ctx1 = await browser.newContext();
     const ctx2 = await browser.newContext();
     const alice = await ctx1.newPage();
@@ -75,7 +75,7 @@ test.describe('Connection Edge Cases', () => {
     await bob.locator('#connectBtn').click();
     await expect(bob.locator('#encBadge')).toHaveClass(/active/, { timeout: PEER_TIMEOUT });
 
-    await expect(bob.locator('#remoteIdInput')).toBeDisabled();
+    await expect(bob.locator('#connectBar')).not.toBeVisible();
 
     await ctx1.close();
     await ctx2.close();
@@ -578,7 +578,7 @@ test.describe.serial('Message Styling', () => {
 test.describe.serial('Typing Indicator Edge Cases', () => {
   test.setTimeout(60_000);
 
-  test('typing indicator shows "Peer is typing..."', async ({ browser }) => {
+  test('typing indicator shows "Them is typing..."', async ({ browser }) => {
     const ctx1 = await browser.newContext();
     const ctx2 = await browser.newContext();
     const alice = await ctx1.newPage();
@@ -595,7 +595,7 @@ test.describe.serial('Typing Indicator Edge Cases', () => {
     await expect(alice.locator('#msgInput')).toBeEnabled({ timeout: PEER_TIMEOUT });
 
     await alice.locator('#msgInput').pressSequentially('test');
-    await expect(bob.locator('#typingIndicator')).toHaveText('Peer is typing...', { timeout: 5_000 });
+    await expect(bob.locator('#typingIndicator')).toHaveText('Them is typing...', { timeout: 5_000 });
 
     await ctx1.close();
     await ctx2.close();

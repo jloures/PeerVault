@@ -1,5 +1,5 @@
 // @ts-check
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 const BASE = 'http://127.0.0.1:3000';
 const PEER_PARAMS = '?peerHost=127.0.0.1&peerPort=9000';
@@ -57,12 +57,12 @@ test.describe('Mobile Layout', () => {
     expect(style).toBe('column');
   });
 
-  test('id-display takes full width', async ({ page }) => {
+  test('sidebar peer ID display is visible when sidebar opens', async ({ page }) => {
     await page.goto('/' + PEER_PARAMS);
-    const idDisplay = page.locator('.id-display');
-    const parentWidth = await page.locator('#connectBar').evaluate(el => el.clientWidth);
-    const idWidth = await idDisplay.evaluate(el => el.clientWidth);
-    expect(idWidth).toBeGreaterThan(parentWidth * 0.8);
+    await waitForPeerId(page);
+    await page.locator('#sidebarToggle').click();
+    await expect(page.locator('.sidebar')).toHaveClass(/open/);
+    await expect(page.locator('#myId')).toBeVisible();
   });
 
   test('connect group takes full width', async ({ page }) => {
@@ -85,6 +85,9 @@ test.describe('Mobile Layout', () => {
 
   test('copy and QR buttons have adequate tap area', async ({ page }) => {
     await page.goto('/' + PEER_PARAMS);
+    await waitForPeerId(page);
+    await page.locator('#sidebarToggle').click();
+    await expect(page.locator('.sidebar')).toHaveClass(/open/);
     for (const id of ['#copyBtn', '#qrBtn']) {
       const size = await page.locator(id).evaluate(el => {
         const rect = el.getBoundingClientRect();
@@ -198,10 +201,11 @@ test.describe('Mobile Layout', () => {
     expect(scrollWidth).toBeLessThanOrEqual(clientWidth);
   });
 
-  test('all interactive elements fit within viewport', async ({ page }) => {
+  test('all visible interactive elements fit within viewport', async ({ page }) => {
     await page.goto('/' + PEER_PARAMS);
     const viewportWidth = page.viewportSize().width;
-    const elements = page.locator('button, input');
+    // Only check visible elements (sidebar elements are off-screen when closed)
+    const elements = page.locator('main button:visible, main input:visible, header button:visible');
     for (const el of await elements.all()) {
       const box = await el.evaluate(el => {
         const rect = el.getBoundingClientRect();
@@ -248,7 +252,7 @@ test.describe('Mobile Connect Bar', () => {
     await ctx2.close();
   });
 
-  test('connect bar reappears after disconnect', async ({ browser }) => {
+  test('status shows disconnected after peer leaves', async ({ browser }) => {
     const ctx1 = await mobileContext(browser);
     const ctx2 = await browser.newContext();
     const alice = await ctx1.newPage();
@@ -263,8 +267,8 @@ test.describe('Mobile Connect Bar', () => {
     // Bob navigates away, closing the WebRTC connection
     await bob.goto('about:blank');
     await ctx2.close();
-    await expect(alice.locator('#connectBar')).toBeVisible({ timeout: PEER_TIMEOUT });
-    await expect(alice.locator('#connectBar')).not.toHaveClass(/hidden-connected/);
+    await expect(alice.locator('#statusText')).toHaveText('Disconnected', { timeout: PEER_TIMEOUT });
+    await expect(alice.locator('#msgInput')).toBeDisabled();
 
     await ctx1.close();
   });
@@ -559,6 +563,7 @@ test.describe('Mobile QR Code', () => {
     await page.goto('/' + PEER_PARAMS);
     await waitForPeerId(page);
 
+    await page.locator('#sidebarToggle').click();
     await page.locator('#qrBtn').click();
     await expect(page.locator('#qrOverlay')).toHaveClass(/active/);
 
@@ -576,6 +581,7 @@ test.describe('Mobile QR Code', () => {
     await page.goto('/' + PEER_PARAMS);
     await waitForPeerId(page);
 
+    await page.locator('#sidebarToggle').click();
     await page.locator('#qrBtn').click();
     const canvas = page.locator('#qrCanvas');
     const size = await canvas.evaluate(el => ({ w: el.width, h: el.height }));
@@ -589,6 +595,7 @@ test.describe('Mobile QR Code', () => {
     await page.goto('/' + PEER_PARAMS);
     await waitForPeerId(page);
 
+    await page.locator('#sidebarToggle').click();
     await page.locator('#qrBtn').click();
     await expect(page.locator('#qrOverlay')).toHaveClass(/active/);
 
@@ -744,7 +751,7 @@ test.describe('Mobile Connection Validation', () => {
     await expect(page.locator('.msg-system').last()).toContainText('Peer not found', { timeout: PEER_TIMEOUT });
   });
 
-  test('duplicate connect attempt shows warning', async ({ browser }) => {
+  test('duplicate connect switches to existing room', async ({ browser }) => {
     const ctx1 = await mobileContext(browser);
     const ctx2 = await browser.newContext();
     const alice = await ctx1.newPage();
@@ -753,18 +760,17 @@ test.describe('Mobile Connection Validation', () => {
     await alice.goto(BASE + PEER_PARAMS);
     await bob.goto(BASE + PEER_PARAMS);
 
+    const bobId = await waitForPeerId(bob);
     await connectPeers(alice, bob);
 
-    // Re-show connect bar and re-enable controls for testing
-    await alice.evaluate(() => {
-      document.querySelector('#connectBar').classList.remove('hidden-connected');
-      document.querySelector('#connectBar').style.display = '';
-      document.querySelector('#remoteIdInput').disabled = false;
-      document.querySelector('#connectBtn').disabled = false;
-    });
-    await alice.locator('#remoteIdInput').fill('some-other-peer');
+    // Use + New to show the connect bar, then try connecting to same peer
+    await alice.locator('#sidebarToggle').click();
+    await alice.locator('#newChatBtn').click();
+    await alice.locator('#remoteIdInput').fill(bobId);
     await alice.locator('#connectBtn').click();
-    await expect(alice.locator('.msg-system').last()).toContainText('Already connected');
+
+    // Should switch back to existing room (still encrypted)
+    await expect(alice.locator('#encBadge')).toHaveClass(/active/);
 
     await ctx1.close();
     await ctx2.close();
@@ -899,6 +905,7 @@ test.describe('Mobile Copy & Share', () => {
     await page.goto(BASE + PEER_PARAMS);
     await waitForPeerId(page);
 
+    await page.locator('#sidebarToggle').click();
     const copyBtn = page.locator('#copyBtn');
     await copyBtn.click();
     await expect(copyBtn).toHaveText('Copied!');

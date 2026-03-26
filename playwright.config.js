@@ -1,4 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
+import { resolve } from 'path';
+
+const webrtcLoopback = resolve('tests/webrtc-loopback.js');
 
 export default defineConfig({
   testDir: './tests',
@@ -15,12 +18,22 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: {
+          args: ['--disable-features=WebRtcHideLocalIpsWithMdns'],
+        },
+      },
       testIgnore: ['**/mobile.spec.js'],
     },
     {
       name: 'mobile-chrome',
-      use: { ...devices['Pixel 5'] },
+      use: {
+        ...devices['Pixel 5'],
+        launchOptions: {
+          args: ['--disable-features=WebRtcHideLocalIpsWithMdns'],
+        },
+      },
       testMatch: ['**/mobile.spec.js'],
     },
   ],

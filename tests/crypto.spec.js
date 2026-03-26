@@ -1,5 +1,5 @@
 // @ts-check
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 // All crypto tests run inside the browser context since Web Crypto API is browser-only.
 

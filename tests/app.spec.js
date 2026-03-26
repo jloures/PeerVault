@@ -1,5 +1,5 @@
 // @ts-check
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 const BASE = 'http://127.0.0.1:3000';
 const PEER_PARAMS = '?peerHost=127.0.0.1&peerPort=9000';
@@ -185,12 +185,11 @@ test.describe.serial('Disconnect & State Recovery', () => {
     await bob.goto('about:blank');
     await ctx2.close();
 
-    // Alice's controls should re-enable
+    // Alice sees disconnected state
     await expect(alice.locator('#statusText')).toHaveText('Disconnected', { timeout: PEER_TIMEOUT });
     await expect(alice.locator('#msgInput')).toBeDisabled();
     await expect(alice.locator('#sendBtn')).toBeDisabled();
-    await expect(alice.locator('#connectBtn')).toBeEnabled();
-    await expect(alice.locator('#remoteIdInput')).toBeEnabled();
+    await expect(alice.locator('#encBadge')).not.toHaveClass(/active/);
     await expect(alice.locator('.msg-system').last()).toContainText('Peer disconnected');
 
     await ctx1.close();
@@ -240,7 +239,7 @@ test.describe.serial('Disconnect & State Recovery', () => {
     // Bob disconnects
     await bob.goto('about:blank');
     await ctx2.close();
-    await expect(alice.locator('#connectBtn')).toBeEnabled({ timeout: PEER_TIMEOUT });
+    await expect(alice.locator('#statusText')).toHaveText('Disconnected', { timeout: PEER_TIMEOUT });
 
     // Charlie connects to Alice
     const charlie = await ctx3.newPage();

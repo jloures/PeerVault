@@ -1,5 +1,5 @@
 // @ts-check
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 const PEER_PARAMS = '?peerHost=127.0.0.1&peerPort=9000';
 
