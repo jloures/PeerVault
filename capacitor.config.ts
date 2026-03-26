@@ -1,11 +1,16 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
+// The production URL where the web app is hosted.
+// Mobile apps load from this URL instead of bundling local files.
+const APP_URL = 'https://jloures.github.io/PeerVault/';
+
 const config: CapacitorConfig = {
   appId: 'com.peervault.app',
   appName: 'PeerVault',
   webDir: 'www',
   server: {
     androidScheme: 'https',
+    url: APP_URL,
   },
   plugins: {
     StatusBar: {
