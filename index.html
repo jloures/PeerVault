@@ -531,8 +531,12 @@
 
     .empty-state .step strong { color: var(--text); }
 
+    /* Hide share button on desktop — only useful on mobile */
+    #shareBtn { display: none; }
+
     /* ── Responsive ── */
     @media (max-width: 520px) {
+      #shareBtn { display: inline-flex; }
       .sidebar {
         position: fixed;
         top: 0; left: 0; bottom: 0;
