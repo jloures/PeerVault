@@ -612,6 +612,7 @@
         <div class="sidebar-id-row">
           <span class="id-value" id="myId">...</span>
           <button class="secondary" id="copyBtn" title="Copy your Peer ID" disabled>Copy</button>
+          <button class="secondary" id="shareBtn" title="Share your Peer ID" disabled>Share</button>
           <button class="secondary" id="qrBtn" title="Show QR code" disabled>QR</button>
         </div>
       </div>
@@ -681,6 +682,7 @@
 
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <script src="https://unpkg.com/qrcode-generator@1.4.4/qrcode.js"></script>
+
   <script>
     (function () {
       'use strict';
@@ -689,6 +691,7 @@
       const $ = (id) => document.getElementById(id);
       const myIdEl        = $('myId');
       const copyBtn       = $('copyBtn');
+      const shareBtn      = $('shareBtn');
       const remoteIdInput = $('remoteIdInput');
       const connectBtn    = $('connectBtn');
       const messagesEl    = $('messages');
@@ -721,6 +724,63 @@
       let myUsername = localStorage.getItem('peervault_username') || '';
 
       usernameInput.value = myUsername;
+
+      // ── Capacitor native APIs (no-op in browser) ──
+      const isNative = typeof window.Capacitor !== 'undefined' &&
+                       window.Capacitor.isNativePlatform &&
+                       window.Capacitor.isNativePlatform();
+      const capPlugins = isNative ? window.Capacitor.Plugins : {};
+
+      async function nativeShare(text, title) {
+        if (isNative && capPlugins.Share) {
+          try { await capPlugins.Share.share({ title, text, dialogTitle: title }); return true; }
+          catch { return false; }
+        }
+        if (navigator.share) {
+          try { await navigator.share({ title, text }); return true; }
+          catch { return false; }
+        }
+        return false;
+      }
+
+      async function nativeCopy(text) {
+        if (isNative && capPlugins.Clipboard) {
+          try { await capPlugins.Clipboard.write({ string: text }); return true; }
+          catch { /* fall through */ }
+        }
+        try { await navigator.clipboard.writeText(text); return true; }
+        catch { return false; }
+      }
+
+      function nativeHaptic() {
+        if (isNative && capPlugins.Haptics) {
+          try { capPlugins.Haptics.impact({ style: 'LIGHT' }); } catch {}
+        }
+      }
+
+      // Configure native status bar when running in Capacitor
+      if (isNative && capPlugins.StatusBar) {
+        try {
+          capPlugins.StatusBar.setStyle({ style: 'DARK' });
+          capPlugins.StatusBar.setBackgroundColor({ color: '#1a1a1a' });
+        } catch {}
+      }
+
+      // Handle Android back button
+      if (isNative && capPlugins.App) {
+        capPlugins.App.addListener('backButton', () => {
+          if (sidebar.classList.contains('open')) {
+            sidebar.classList.remove('open');
+            sidebarBackdrop.classList.remove('active');
+          } else if (activeRoomId && window.innerWidth <= 520) {
+            showNewChatView();
+            sidebar.classList.add('open');
+            sidebarBackdrop.classList.add('active');
+          } else {
+            capPlugins.App.exitApp();
+          }
+        });
+      }
 
       // ── E2E Crypto (ECDH + AES-256-GCM) ──
       const ECDH_PARAMS = { name: 'ECDH', namedCurve: 'P-256' };
@@ -1163,6 +1223,7 @@
         peer.on('open', (id) => {
           myIdEl.textContent = id;
           copyBtn.disabled = false;
+          shareBtn.disabled = false;
           connectBtn.disabled = false;
           qrBtn.disabled = false;
           if (!activeRoomId) setStatus('', 'Waiting for connection');
@@ -1262,14 +1323,33 @@
         remoteIdInput.focus();
       });
 
-      copyBtn.addEventListener('click', () => {
+      copyBtn.addEventListener('click', async () => {
         const id = myIdEl.textContent;
         if (!id || id === '...') return;
-        navigator.clipboard.writeText(id).then(() => {
+        const ok = await nativeCopy(id);
+        if (ok) {
+          nativeHaptic();
           const original = copyBtn.textContent;
           copyBtn.textContent = 'Copied!';
           setTimeout(() => { copyBtn.textContent = original; }, 1500);
-        });
+        }
+      });
+
+      shareBtn.addEventListener('click', async () => {
+        const id = myIdEl.textContent;
+        if (!id || id === '...') return;
+        const shareUrl = window.location.origin + window.location.pathname + '#peer=' + id;
+        const shared = await nativeShare('Connect with me on PeerVault: ' + shareUrl, 'PeerVault');
+        if (!shared) {
+          // Fallback: copy to clipboard
+          const ok = await nativeCopy(shareUrl);
+          if (ok) {
+            nativeHaptic();
+            const original = shareBtn.textContent;
+            shareBtn.textContent = 'Copied!';
+            setTimeout(() => { shareBtn.textContent = original; }, 1500);
+          }
+        }
       });
 
       connectBtn.addEventListener('click', () => {

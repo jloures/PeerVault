@@ -13,6 +13,9 @@ Thumbs.db
 playwright-report/
 test-results/
 
+# Capacitor
+www/
+
 # Misc
 *.log
 *.pem

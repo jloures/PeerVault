@@ -10,12 +10,32 @@
     "test:crypto": "playwright test tests/crypto.spec.js",
     "test:mobile": "playwright test tests/mobile.spec.js",
     "test:a11y": "playwright test tests/a11y.spec.js",
-    "test:report": "playwright show-report"
+    "test:report": "playwright show-report",
+    "build:web": "mkdir -p www && cp index.html www/index.html",
+    "cap:sync": "npm run build:web && npx cap sync",
+    "cap:ios": "npm run cap:sync && npx cap open ios",
+    "cap:android": "npm run cap:sync && npx cap open android",
+    "cap:run:ios": "npm run cap:sync && npx cap run ios",
+    "cap:run:android": "npm run cap:sync && npx cap run android"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",
     "@playwright/test": "^1.57.0",
     "peer": "^1.0.2",
-    "serve": "^14.2.4"
+    "serve": "^14.2.4",
+    "typescript": "^6.0.2"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.3.0",
+    "@capacitor/app": "^8.1.0",
+    "@capacitor/cli": "^8.3.0",
+    "@capacitor/clipboard": "^8.0.1",
+    "@capacitor/core": "^8.3.0",
+    "@capacitor/haptics": "^8.0.1",
+    "@capacitor/ios": "^8.3.0",
+    "@capacitor/keyboard": "^8.0.2",
+    "@capacitor/share": "^8.0.1",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.2"
   }
 }

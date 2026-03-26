@@ -12,6 +12,7 @@ A serverless, peer-to-peer encrypted chat application. No backend, no accounts, 
 - **Zero setup** — auto-assigned peer ID, no accounts or configuration
 - **QR code sharing** — generate a QR code that auto-connects when scanned
 - **Single file** — one HTML file with embedded CSS/JS, no build step
+- **Native mobile apps** — iOS and Android via [Capacitor](https://capacitorjs.com/), with native share, clipboard, and haptics
 - **Mobile friendly** — responsive layout, safe area insets, virtual keyboard handling
 - **Typing indicator** — see when the other person is typing
 - **No persistence** — messages exist only in memory, keys are discarded on disconnect
@@ -38,6 +39,42 @@ open index.html
 
 To test peer-to-peer, open the page in two browser tabs.
 
+## Mobile apps (iOS & Android)
+
+PeerVault runs natively on iOS and Android via [Capacitor](https://capacitorjs.com/). The same `index.html` is wrapped in a native WebView with access to platform APIs (share sheet, clipboard, haptics, status bar).
+
+### Prerequisites
+
+- **iOS**: Xcode 15+ and CocoaPods (`sudo gem install cocoapods`)
+- **Android**: Android Studio with SDK 22+
+
+### Build and run
+
+```bash
+# Sync web assets to native projects
+npm run cap:sync
+
+# Open in Xcode (build/run from there)
+npm run cap:ios
+
+# Open in Android Studio (build/run from there)
+npm run cap:android
+
+# Run directly on a connected device/simulator
+npm run cap:run:ios
+npm run cap:run:android
+```
+
+### Native features
+
+When running as a native app, PeerVault automatically uses:
+
+- **Native share sheet** — share your Peer ID via any installed app
+- **Native clipboard** — copy Peer ID with haptic feedback
+- **Status bar** — dark style matching the app theme
+- **Android back button** — closes sidebar or navigates back
+- **Splash screen** — dark themed launch screen
+
 ## Tests
 
 ```bash
@@ -63,6 +100,7 @@ npm run test:a11y     # Accessibility audits
 | Encryption | Web Crypto API (ECDH + AES-GCM) |
 | QR codes | [qrcode-generator](https://unpkg.com/qrcode-generator@1.4.4/qrcode.js) (CDN) |
 | Testing | [Playwright](https://playwright.dev/) + [axe-core](https://github.com/dequelabs/axe-core) |
+| Mobile | [Capacitor](https://capacitorjs.com/) (iOS + Android native shell) |
 | Hosting | Any static file server (GitHub Pages, Netlify, etc.) |
 
 ## Encryption
