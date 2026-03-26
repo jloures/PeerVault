@@ -1025,7 +1025,7 @@
 
           if (room.keyPairReady) await room.keyPairReady;
           const pubKey = await exportPublicKey(room.myKeyPair.publicKey);
-          conn.send({ type: 'key-exchange', publicKey: pubKey, username: myUsername });
+          conn.send({ type: 'key-exchange', publicKey: pubKey });
         };
 
         conn.on('open', onOpen);
@@ -1040,7 +1040,12 @@
               const remotePubKey = await importPublicKey(data.publicKey);
               room.sharedKey = await deriveSharedKey(room.myKeyPair.privateKey, remotePubKey);
               room.isEncrypted = true;
-              if (data.username) room.remoteName = data.username;
+
+              // Send username encrypted now that we have a shared key
+              if (myUsername) {
+                const payload = await encryptMessage(JSON.stringify({ type: 'username', username: myUsername }), room.sharedKey);
+                conn.send({ type: 'encrypted', payload });
+              }
 
               if (room.id === activeRoomId) {
                 encBadge.classList.add('active');
@@ -1061,6 +1066,7 @@
           }
 
           if (data.type === 'username-update') {
+            // Legacy fallback — new clients send usernames encrypted
             if (data.username !== undefined) {
               room.remoteName = data.username;
               if (room.id === activeRoomId) headerTitle.textContent = roomDisplayName(room);
@@ -1077,6 +1083,18 @@
           if (data.type === 'encrypted' && room.sharedKey) {
             try {
               const text = await decryptMessage(data.payload, room.sharedKey);
+
+              // Check if this is a control message (JSON with a type field)
+              try {
+                const parsed = JSON.parse(text);
+                if (parsed.type === 'username') {
+                  room.remoteName = parsed.username || '';
+                  if (room.id === activeRoomId) headerTitle.textContent = roomDisplayName(room);
+                  renderSidebar();
+                  return;
+                }
+              } catch (_) { /* not JSON — it's a regular chat message */ }
+
               addMessage(room, text, theirDisplayName(room), false);
               room.isRemoteTyping = false;
               clearTimeout(room.remoteTypingTimeout);
@@ -1294,10 +1312,11 @@
         myUsername = usernameInput.value.trim().slice(0, 30);
         localStorage.setItem('p2p_username', myUsername);
 
-        // Broadcast to all connected rooms
+        // Broadcast to all connected encrypted rooms
         for (const room of rooms) {
-          if (room.conn && room.conn.open) {
-            room.conn.send({ type: 'username-update', username: myUsername });
+          if (room.conn && room.conn.open && room.sharedKey) {
+            encryptMessage(JSON.stringify({ type: 'username', username: myUsername }), room.sharedKey)
+              .then(payload => room.conn.send({ type: 'encrypted', payload }));
           }
         }
       });
