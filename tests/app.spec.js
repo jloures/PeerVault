@@ -16,12 +16,12 @@ async function waitForPeerId(page) {
 test.describe('Page Load', () => {
   test('has correct title', async ({ page }) => {
     await page.goto('/' + PEER_PARAMS);
-    await expect(page).toHaveTitle('P2P Chat');
+    await expect(page).toHaveTitle('PeerVault');
   });
 
   test('shows heading', async ({ page }) => {
     await page.goto('/' + PEER_PARAMS);
-    await expect(page.locator('.header h1')).toHaveText('P2P Chat');
+    await expect(page.locator('.header h1')).toHaveText('PeerVault');
   });
 
   test('shows status indicator', async ({ page }) => {

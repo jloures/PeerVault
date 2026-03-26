@@ -39,7 +39,7 @@ test.describe('Mobile Layout', () => {
     await page.goto('/' + PEER_PARAMS);
     const header = page.locator('.header');
     await expect(header).toBeVisible();
-    await expect(page.locator('.header h1')).toHaveText('P2P Chat');
+    await expect(page.locator('.header h1')).toHaveText('PeerVault');
   });
 
   test('header h1 uses smaller font on mobile', async ({ page }) => {

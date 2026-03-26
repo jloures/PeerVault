@@ -1,19 +1,20 @@
-# P2P Chat
+# PeerVault
 
 A serverless, peer-to-peer encrypted chat application. No backend, no accounts, no data collection — just open, connect, and chat.
 
-[Live Demo](https://jloures.github.io/p2pmessenger/)
+[Live Demo](https://jloures.github.io/peervault/)
 
 ## Features
 
 - **Peer-to-peer** — direct WebRTC connection between browsers via [PeerJS](https://peerjs.com/)
 - **E2E encrypted** — ECDH P-256 key exchange + AES-256-GCM, using the browser's native [Web Crypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
+- **Multi-room** — chat with multiple peers simultaneously, each with independent encryption
 - **Zero setup** — auto-assigned peer ID, no accounts or configuration
 - **QR code sharing** — generate a QR code that auto-connects when scanned
 - **Single file** — one HTML file with embedded CSS/JS, no build step
 - **Mobile friendly** — responsive layout, safe area insets, virtual keyboard handling
 - **Typing indicator** — see when the other person is typing
-- **No persistence** — nothing stored in localStorage, cookies, or on any server
+- **No persistence** — messages exist only in memory, keys are discarded on disconnect
 
 ## How it works
 
