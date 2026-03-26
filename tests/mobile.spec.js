@@ -267,7 +267,7 @@ test.describe('Mobile Connect Bar', () => {
     // Bob navigates away, closing the WebRTC connection
     await bob.goto('about:blank');
     await ctx2.close();
-    await expect(alice.locator('#statusText')).toHaveText('Disconnected', { timeout: PEER_TIMEOUT });
+    await expect(alice.locator('#statusText')).toHaveText(/Reconnecting|Disconnected/, { timeout: PEER_TIMEOUT });
     await expect(alice.locator('#msgInput')).toBeDisabled();
 
     await ctx1.close();

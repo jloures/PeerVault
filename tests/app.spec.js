@@ -185,12 +185,12 @@ test.describe.serial('Disconnect & State Recovery', () => {
     await bob.goto('about:blank');
     await ctx2.close();
 
-    // Alice sees disconnected state
-    await expect(alice.locator('#statusText')).toHaveText('Disconnected', { timeout: PEER_TIMEOUT });
+    // Alice sees disconnected state (auto-reconnect kicks in)
+    await expect(alice.locator('#statusText')).toHaveText(/Reconnecting|Disconnected/, { timeout: PEER_TIMEOUT });
     await expect(alice.locator('#msgInput')).toBeDisabled();
     await expect(alice.locator('#sendBtn')).toBeDisabled();
     await expect(alice.locator('#encBadge')).not.toHaveClass(/active/);
-    await expect(alice.locator('.msg-system').last()).toContainText('Peer disconnected');
+    await expect(alice.locator('.msg-system').last()).toContainText(/Connection lost|Peer disconnected/);
 
     await ctx1.close();
   });
@@ -239,7 +239,7 @@ test.describe.serial('Disconnect & State Recovery', () => {
     // Bob disconnects
     await bob.goto('about:blank');
     await ctx2.close();
-    await expect(alice.locator('#statusText')).toHaveText('Disconnected', { timeout: PEER_TIMEOUT });
+    await expect(alice.locator('#statusText')).toHaveText(/Reconnecting|Disconnected/, { timeout: PEER_TIMEOUT });
 
     // Charlie connects to Alice
     const charlie = await ctx3.newPage();

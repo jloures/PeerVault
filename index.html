@@ -722,6 +722,7 @@
       let activeRoomId = null;
       let typingTimeout = null;
       let myUsername = localStorage.getItem('peervault_username') || '';
+      let heartbeatInterval = null;
 
       usernameInput.value = myUsername;
 
@@ -857,10 +858,87 @@
           isEncrypted: false,
           remoteTypingTimeout: null,
           isRemoteTyping: false,
+          reconnectAttempts: 0,
+          reconnectTimer: null,
+          shouldReconnect: false,
         };
         room.keyPairReady = generateKeyPair().then(kp => { room.myKeyPair = kp; return kp; });
         rooms.push(room);
         return room;
+      }
+
+      // ── Auto-reconnect ──
+      const RECONNECT_BASE_DELAY = 2000;
+      const RECONNECT_MAX_DELAY = 30000;
+      const RECONNECT_MAX_ATTEMPTS = 50;
+      const HEARTBEAT_INTERVAL = 15000;
+      const HEARTBEAT_TIMEOUT = 10000;
+
+      function reconnectRoom(room) {
+        if (!room.shouldReconnect) return;
+        if (room.conn && room.conn.open) return;
+        if (!peer || peer.destroyed || peer.disconnected) return;
+        if (room.reconnectAttempts >= RECONNECT_MAX_ATTEMPTS) {
+          addSystemMessage(room, 'Gave up reconnecting after ' + RECONNECT_MAX_ATTEMPTS + ' attempts');
+          room.shouldReconnect = false;
+          return;
+        }
+
+        room.reconnectAttempts++;
+        const delay = Math.min(RECONNECT_BASE_DELAY * Math.pow(1.5, room.reconnectAttempts - 1), RECONNECT_MAX_DELAY);
+        const jitter = delay * (0.5 + Math.random() * 0.5);
+
+        if (room.id === activeRoomId) setStatus('connecting', 'Reconnecting (attempt ' + room.reconnectAttempts + ')...');
+
+        room.reconnectTimer = setTimeout(() => {
+          if (!room.shouldReconnect || !peer || peer.destroyed || peer.disconnected) return;
+          if (room.conn && room.conn.open) return;
+
+          room.keyPairReady = generateKeyPair().then(kp => { room.myKeyPair = kp; return kp; });
+          room.conn = peer.connect(room.remotePeerId, { reliable: true });
+          setupConnection(room);
+        }, jitter);
+      }
+
+      function cancelReconnect(room) {
+        room.shouldReconnect = false;
+        room.reconnectAttempts = 0;
+        clearTimeout(room.reconnectTimer);
+        room.reconnectTimer = null;
+      }
+
+      function reconnectAllRooms() {
+        for (const room of rooms) {
+          if (room.shouldReconnect && (!room.conn || !room.conn.open)) {
+            room.reconnectAttempts = 0;
+            clearTimeout(room.reconnectTimer);
+            reconnectRoom(room);
+          }
+        }
+      }
+
+      // Heartbeat: detect dead connections that didn't fire 'close'
+      function startHeartbeat() {
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
+        heartbeatInterval = setInterval(() => {
+          for (const room of rooms) {
+            if (!room.conn || !room.conn.open) continue;
+            try {
+              room.conn.send({ type: 'ping' });
+              // Set a timeout — if no pong comes back, the connection is dead
+              if (room._pingTimeout) clearTimeout(room._pingTimeout);
+              room._pingTimeout = setTimeout(() => {
+                if (room.conn && room.conn.open) {
+                  // Connection appears open but is actually dead
+                  try { room.conn.close(); } catch {}
+                }
+              }, HEARTBEAT_TIMEOUT);
+            } catch {
+              // Send failed — connection is dead
+              try { room.conn.close(); } catch {}
+            }
+          }
+        }, HEARTBEAT_INTERVAL);
       }
 
       // ── Sidebar rendering ──
@@ -920,8 +998,10 @@
       function removeRoom(roomId) {
         const room = rooms.find(r => r.id === roomId);
         if (room) {
+          cancelReconnect(room);
           if (room.conn && room.conn.open) room.conn.close();
           clearTimeout(room.remoteTypingTimeout);
+          clearTimeout(room._pingTimeout);
         }
         rooms = rooms.filter(r => r.id !== roomId);
         if (activeRoomId === roomId) {
@@ -1094,12 +1174,23 @@
         conn.on('data', async (data) => {
           if (!data || !data.type) return;
 
+          if (data.type === 'ping') {
+            try { conn.send({ type: 'pong' }); } catch {}
+            return;
+          }
+          if (data.type === 'pong') {
+            clearTimeout(room._pingTimeout);
+            return;
+          }
+
           if (data.type === 'key-exchange') {
             try {
               if (room.keyPairReady) await room.keyPairReady;
               const remotePubKey = await importPublicKey(data.publicKey);
               room.sharedKey = await deriveSharedKey(room.myKeyPair.privateKey, remotePubKey);
               room.isEncrypted = true;
+              room.shouldReconnect = true;
+              room.reconnectAttempts = 0;
 
               // Send username encrypted now that we have a shared key
               if (myUsername) {
@@ -1172,15 +1263,23 @@
           room.conn = null;
           room.isRemoteTyping = false;
           clearTimeout(room.remoteTypingTimeout);
-          addSystemMessage(room, 'Peer disconnected');
+          clearTimeout(room._pingTimeout);
 
           if (room.id === activeRoomId) {
-            setStatus('', 'Disconnected');
             encBadge.classList.remove('active');
             msgInput.disabled = true;
             sendBtn.disabled = true;
             typingEl.textContent = '';
             connectBar.classList.remove('hidden-connected');
+          }
+
+          if (room.shouldReconnect) {
+            addSystemMessage(room, 'Connection lost — reconnecting...');
+            if (room.id === activeRoomId) setStatus('connecting', 'Reconnecting...');
+            reconnectRoom(room);
+          } else {
+            addSystemMessage(room, 'Peer disconnected');
+            if (room.id === activeRoomId) setStatus('', 'Disconnected');
           }
           renderSidebar();
         });
@@ -1188,6 +1287,10 @@
         conn.on('error', (err) => {
           if (room.id === activeRoomId) setStatus('error', 'Connection error');
           addSystemMessage(room, 'Connection error: ' + err.message);
+          // If this was a reconnect attempt and it failed, try again
+          if (room.shouldReconnect && (!room.conn || !room.conn.open)) {
+            reconnectRoom(room);
+          }
         });
       }
 
@@ -1228,6 +1331,9 @@
           qrBtn.disabled = false;
           if (!activeRoomId) setStatus('', 'Waiting for connection');
 
+          // Reconnect any rooms that were waiting for the signaling server
+          reconnectAllRooms();
+
           // Auto-connect if opened via QR code / link with #peer= hash
           const hashParams = new URLSearchParams(window.location.hash.slice(1));
           const targetPeer = hashParams.get('peer');
@@ -1252,6 +1358,8 @@
 
           if (room) {
             // Reconnect scenario — reuse existing room with new key pair
+            clearTimeout(room.reconnectTimer);
+            room.reconnectAttempts = 0;
             room.keyPairReady = generateKeyPair().then(kp => { room.myKeyPair = kp; return kp; });
             room.conn = incoming;
           } else {
@@ -1472,8 +1580,42 @@
         });
       }
 
+      // ── Connection resilience: reconnect on network/app resume ──
+      function ensurePeerAndRooms() {
+        if (!peer || peer.destroyed) {
+          initPeer();
+          return; // initPeer will fire 'open', rooms reconnect from there
+        }
+        if (peer.disconnected) {
+          peer.reconnect();
+        }
+        reconnectAllRooms();
+      }
+
+      // Network goes online → reconnect everything
+      window.addEventListener('online', () => {
+        ensurePeerAndRooms();
+      });
+
+      // Tab/app becomes visible again → check connections
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          ensurePeerAndRooms();
+        }
+      });
+
+      // Capacitor app resume
+      if (isNative && capPlugins.App) {
+        capPlugins.App.addListener('appStateChange', (state) => {
+          if (state.isActive) {
+            ensurePeerAndRooms();
+          }
+        });
+      }
+
       // ── Start ──
       initPeer();
+      startHeartbeat();
     })();
   </script>
 </body>
