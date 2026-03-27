@@ -20,3 +20,6 @@ www/
 *.log
 *.pem
 .env
+
+# Bug screenshots
+bugs/

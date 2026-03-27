@@ -544,8 +544,8 @@
       .sidebar {
         position: fixed;
         top: 0; left: 0; bottom: 0;
-        width: 85vw;
-        max-width: 320px;
+        width: 88vw;
+        max-width: 400px;
         z-index: 50;
         transform: translateX(-100%);
         transition: transform 0.25s ease;
@@ -1964,7 +1964,10 @@
       });
 
       // ── Mobile: resize on virtual keyboard open/close ──
-      if (window.visualViewport) {
+      // In Capacitor native apps, the native Keyboard plugin handles resize.
+      // This handler is only needed for browser/PWA usage.
+      const isCapacitor = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
+      if (window.visualViewport && !isCapacitor) {
         window.visualViewport.addEventListener('resize', () => {
           document.body.style.height = window.visualViewport.height + 'px';
           messagesEl.scrollTop = messagesEl.scrollHeight;
