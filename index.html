@@ -728,6 +728,7 @@
       let typingTimeout = null;
       let myUsername = localStorage.getItem('peervault_username') || '';
       let heartbeatInterval = null;
+      let appInForeground = true;
 
       usernameInput.value = myUsername;
 
@@ -787,6 +788,54 @@
           }
         });
       }
+
+      // ── Background mode (keeps connection alive when screen is locked) ──
+      if (isNative && capPlugins.BackgroundMode) {
+        try {
+          capPlugins.BackgroundMode.enable();
+          capPlugins.BackgroundMode.setSettings({
+            title: 'PeerVault',
+            text: 'Keeping your connections alive',
+            icon: 'ic_launcher',
+            silent: true,
+          });
+        } catch {}
+      }
+
+      // ── Local notifications (alert on incoming messages while backgrounded) ──
+      let notificationsEnabled = false;
+      if (isNative && capPlugins.LocalNotifications) {
+        capPlugins.LocalNotifications.requestPermissions().then(result => {
+          notificationsEnabled = result.display === 'granted';
+        }).catch(() => {});
+        // Bring app to foreground when notification tapped
+        capPlugins.LocalNotifications.addListener('localNotificationActionPerformed', () => {
+          // App resumes automatically on tap
+        });
+      }
+
+      function notifyMessage(senderName, text) {
+        if (!notificationsEnabled || appInForeground) return;
+        if (!capPlugins.LocalNotifications) return;
+        capPlugins.LocalNotifications.schedule({
+          notifications: [{
+            id: Date.now() % 2147483647,
+            title: senderName || 'PeerVault',
+            body: text.length > 100 ? text.slice(0, 100) + '…' : text,
+            smallIcon: 'ic_launcher',
+          }]
+        }).catch(() => {});
+      }
+
+      // Track foreground/background state
+      if (isNative && capPlugins.App) {
+        capPlugins.App.addListener('appStateChange', (state) => {
+          appInForeground = state.isActive;
+        });
+      }
+      document.addEventListener('visibilitychange', () => {
+        appInForeground = document.visibilityState === 'visible';
+      });
 
       // ── E2E Crypto (ECDH + AES-256-GCM) ──
       const ECDH_PARAMS = { name: 'ECDH', namedCurve: 'P-256' };
@@ -1252,6 +1301,7 @@
               } catch (_) { /* not JSON — it's a regular chat message */ }
 
               addMessage(room, text, theirDisplayName(room), false);
+              notifyMessage(theirDisplayName(room), text);
               room.isRemoteTyping = false;
               clearTimeout(room.remoteTypingTimeout);
               if (room.id === activeRoomId) typingEl.textContent = '';
@@ -1299,6 +1349,17 @@
         });
       }
 
+      // ── Persistent Peer ID ──
+      const PEER_ID_KEY = 'peervault_peer_id';
+
+      function getSavedPeerId() {
+        return localStorage.getItem(PEER_ID_KEY);
+      }
+
+      function savePeerId(id) {
+        localStorage.setItem(PEER_ID_KEY, id);
+      }
+
       // ── Init PeerJS ──
       function initPeer() {
         setStatus('connecting', 'Connecting to signaling server...');
@@ -1326,9 +1387,11 @@
           opts.secure = false;
         }
 
-        peer = new Peer(undefined, opts);
+        const savedId = getSavedPeerId();
+        peer = new Peer(savedId || undefined, opts);
 
         peer.on('open', (id) => {
+          savePeerId(id);
           myIdEl.textContent = id;
           copyBtn.disabled = false;
           shareBtn.disabled = false;
@@ -1382,9 +1445,13 @@
         });
 
         peer.on('error', (err) => {
-          if (err.type === 'peer-unavailable') {
+          if (err.type === 'unavailable-id') {
+            // Saved ID is taken (stale session) — clear it and retry with a new ID
+            localStorage.removeItem(PEER_ID_KEY);
+            if (peer && !peer.destroyed) { try { peer.destroy(); } catch {} }
+            setTimeout(() => initPeer(), 1000);
+          } else if (err.type === 'peer-unavailable') {
             setStatus('error', 'Peer not found');
-            // Show error in active room or as an alert
             const room = getActiveRoom();
             if (room) addSystemMessage(room, 'Peer not found — check the ID and try again');
             else appendSystemEl('Peer not found — check the ID and try again');
