@@ -54,6 +54,13 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      transition: margin-left 0.25s ease, opacity 0.25s ease;
+    }
+
+    .sidebar.collapsed {
+      margin-left: calc(-1 * var(--sidebar-w));
+      opacity: 0;
+      pointer-events: none;
     }
 
     .sidebar-header {
@@ -611,7 +618,6 @@
     }
 
     @media (min-width: 521px) {
-      .sidebar-toggle { display: none; }
       .sidebar-backdrop { display: none !important; }
     }
 
@@ -1923,17 +1929,29 @@
 
       // ── Sidebar toggle ──
       function openSidebar() {
-        sidebar.classList.add('open');
-        sidebarBackdrop.classList.add('active');
+        if (isMobile()) {
+          sidebar.classList.add('open');
+          sidebarBackdrop.classList.add('active');
+        } else {
+          sidebar.classList.remove('collapsed');
+        }
       }
 
       function closeSidebar() {
-        sidebar.classList.remove('open');
-        sidebarBackdrop.classList.remove('active');
+        if (isMobile()) {
+          sidebar.classList.remove('open');
+          sidebarBackdrop.classList.remove('active');
+        } else {
+          sidebar.classList.add('collapsed');
+        }
+      }
+
+      function isSidebarOpen() {
+        return isMobile() ? sidebar.classList.contains('open') : !sidebar.classList.contains('collapsed');
       }
 
       sidebarToggle.addEventListener('click', () => {
-        sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+        isSidebarOpen() ? closeSidebar() : openSidebar();
       });
 
       sidebarBackdrop.addEventListener('click', closeSidebar);
