@@ -598,6 +598,142 @@
       .sidebar-toggle { display: none; }
       .sidebar-backdrop { display: none !important; }
     }
+
+    /* ── Persistence UI ── */
+    .persistence-row {
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      font-size: 12px;
+      color: var(--text-dim);
+      cursor: pointer;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      left: 2px;
+      top: 2px;
+      width: 14px;
+      height: 14px;
+      background: var(--text-dim);
+      border-radius: 50%;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .toggle-switch input:checked + .toggle-slider::before {
+      transform: translateX(16px);
+      background: #fff;
+    }
+
+    .persistence-setup {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .persistence-setup input[type="password"] {
+      width: 100%;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 6px 10px;
+      color: var(--text);
+      font-size: 12px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .persistence-setup input[type="password"]:focus { border-color: var(--accent); }
+
+    .persist-btn-row { display: flex; gap: 6px; }
+
+    .persist-btn {
+      font-size: 11px !important;
+      padding: 4px 10px !important;
+      min-height: auto !important;
+    }
+
+    .persist-erase {
+      color: var(--red) !important;
+      border-color: var(--red) !important;
+    }
+
+    .persist-erase:hover { background: rgba(248, 113, 113, 0.15) !important; }
+
+    .persist-hint {
+      font-size: 11px;
+      color: var(--text-dim);
+      line-height: 1.4;
+    }
+
+    .persist-hint.error { color: var(--red); }
+    .persist-hint.success { color: var(--green); }
+
+    .persist-unlock-modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      max-width: 340px;
+      width: 90%;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .persist-unlock-modal h2 { font-size: 15px; font-weight: 700; color: var(--text); }
+    .persist-unlock-modal p { font-size: 12px; color: var(--text-dim); text-align: center; line-height: 1.5; }
+
+    .persist-unlock-modal input[type="password"] {
+      width: 100%;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px 12px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+    }
+
+    .persist-unlock-modal input[type="password"]:focus { border-color: var(--accent); }
+    .persist-unlock-modal button { width: 100%; }
   </style>
   <link rel="icon" type="image/png" sizes="16x16" href="data:image/png;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAEKADAAQAAAABAAAAEAAAAAD/7QA4UGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAAA4QklNBCUAAAAAABDUHYzZjwCyBOmACZjs+EJ+/8AAEQgAEAAQAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/bAEMAAgICAgICAwICAwUDAwMFBgUFBQUGCAYGBgYGCAoICAgICAgKCgoKCgoKCgwMDAwMDA4ODg4ODw8PDw8PDw8PD//bAEMBAgICBAQEBwQEBxALCQsQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEP/dAAQAAf/aAAwDAQACEQMRAD8A/GDRNAm1pztnjt4w2zLhmZnwSFVVBJPHsPek1zQZtEnETzJOpwNyBlIJAO1lYAgj8ak0HxHdaA0j20MUzMVdPNBPlyL/ABrtKnOMjrjvjIFM1vX7jXZBPcxqkrMXkKkkOxGAeSSOB6nJyT1rrh7L2Lv8X/DHLH2vtHf4T//Z">
   <link rel="apple-touch-icon" sizes="192x192" href="data:image/png;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAwKADAAQAAAABAAAAwAAAAAD/7QA4UGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAAA4QklNBCUAAAAAABDUHYzZjwCyBOmACZjs+EJ+/8AAEQgAwADAAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/bAEMAAgICAgICAwICAwUDAwMFBgUFBQUGCAYGBgYGCAoICAgICAgKCgoKCgoKCgwMDAwMDA4ODg4ODw8PDw8PDw8PD//bAEMBAgICBAQEBwQEBxALCQsQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEP/dAAQADP/aAAwDAQACEQMRAD8A/EEjApAeafSYFSgAjNJgU6jFNoTQ0DmnUUUxhRRR04oAKKQDFLQAgGKD0paDzRYQwjFJT9o9aMCkAnApcjpQVyKMCk0LcacU/imkc0oGKEhoCAaaQRT6KbQWGr604jNGMUUxjCMdKMHrT6KAP//Q/EOikNLSTAKKO9FMAooooAKKbjHI5pQc0E8wtFFFBQUUUZxQAUUlLQJC5pKKKBhSc5paKACiijigAooooAKKKX3oA//R/EIjIoHShulICcVKE2LjnNLSA5FGe9NsVwNA6c0dcGkJ9KECHU3gUmTQTmpuMXPNKDxTKKaYkKc9aDmkyaWgEAz2pc0maM0agx9NzSEk0lFwH54pRTM85p24U7j9RaKZuNOzmi4uYWikzilpjuJ3p2aTOOTS8ZzQCZ//0vxCI4wKAOMUhyKUdKmIkJg9KTjHvT6YB+lFyB2eKTaetGcmnZoY7DAM0u3indKaWHTNA7CHivXfh78FvFnxCh/tG22afpgOBczg4cjgiJBy+O54HvniuP8AAfhtfGPjHSfDbvsjvZgsjDqIlBZyPfaDj3r6o+O/xNvvBUVl8O/B7f2aUt0aWWL5Wig+7HFGf4cgEkjnGMHk1+g8JcPYKWFrZtmjfsKbUVFaOcn0v0S0v/wDmrVJ3UIbsiT9lbQ1ULceJZ/MHXEMajP0LE07/hljw7/0Mtx/36j/APiq+MZLieaRpZpXd3OWZmJJPuTkmmeY398/nXpf63cPLRZQv/Bsv8ifq9b+f8D7R/4ZY8O/9DLcf9+o/wD4qmv+ytoTKRB4ln3npmCMjP0DA18YeY398/nTo7iaJxJFKyOpyGViCD7EUf638PvR5Qv/AAbL/IPq9X/n5+B638Qvgr4t+H0H9pXGzUdLzg3MAI8vPTzUPKZ7HJHbOa8hAr7T+A/xNvvGkd38OfF7f2iz27mKWX5mlhHyyRSE/ewDkE84zk8Cvlnx74aHg7xlq3hpGLx2U5ETHqYmAdM++0jPvXm8W8P4OOFo5tlbfsKjcXF6uEl0v1T6fnqOjUlzOE90cjRS5B+tG01+fo67gBmjpSdKUe9K4mGM0+jjtRVCSGnmlzgUp9aKVgsf/9P8Q6KQnFKPagBMEcigdM0Zx1pM5NQZsBWjpWl6hrep2mjaRbtdXt9KsMMKDLPI5wFAqga+wf2KPDdnrHxPv9aukDvolg0kGf4ZZ3EW76hCwH1qZSaVzwuJ87WXZfWxzV+SLaXd7JffY9e8Pfs5/B74PeHoPFHxx1CC+u5MAxzOy2qSEZMcUafPOw7nkH+6BU7/ABO/YpU7U0K1OO/9kSf1Wvkj9ovxzqvjj4r64b6VjaaPcy2FpCTlYo7dthIHTLsCzHvn2FeGYqFTb3Z+d5b4f4jMaEMZm2Nq+0mr2hLljFPVJKz2/rufqn4J8e/soax4ktLHwfo1vBrDCQwOumvCwwhLYfaAPlBqx47+IP7LGmeI57Dxzo9vPq8aRF3fTXmYoVBQbwpzhfyr4K/Z+/5Kxo/+7cf+iXq1+0UMfFXUP+uFr/6KFfdxyGn/AKtvHc8ub23Ly3934b3t38+xt/xCbCe15frdfb/n5/wD65HxQ/YqHXQbU/8AcIf/AOJoPxQ/YqPTQLX/AMFD/wDxNfmtXrfgX4LeNfHtr/aOnxR2Vg2dlxdFkWTHXYqhmYD1xj3r5bK8jxONrKhhKbnLsvz8l5s2n4T4KKu8XX/8Gf8AAPs4fFD9inp/YNr/AOCh/wD4mmn4n/sVk8aDa/8Agof/AOJr408c/BTxt4DtTqN/FHfWCY8y4tSWWPPA3qwVlB9cY968jozPI8TgqroYuDhLs9Pn5rzCHhNgpK8cXX/8Gf8AAP1l+GnjD9mDxJ4utdG+HejW0OtzJK0brpzQHaiEyfOVAHy5471598W9e+Afhvx/qek+KNMik1SMQtKWsmmOHjVlG/ByApGPTpXzn+yH/wAl20c/9O19/wCiGqp+1hz8d/EP+5Z/+k0derw3xTicrqS9klOLXwzXNG+mvLdK/S/ZtHk8P5Gsv4mlgKdapKDo83vSvrz2/I9N/wCE5/ZiJw2lQDP/AFDnx+i1Dq3wa+G/xK0mXXPhZeRWt0mcRxsTbs/UJJG/zRE9jwPY18V16n8G/FWoeFvH+lNZyEW+ozR2lxHn5XjlbaMj1ViGB7Y9zX6Dl3H1DMK0MHmuDpezm1G8I8so30und7f12P2CeGcVzQk7nnGoafeaXf3Gl6hE0F1au0csbcMrqcEGquK+j/2ndEttM8cWep26hX1S0Dy47yRMUz+K7fyr5wBz1r844myR5dmFbBN35JWv3W6f3WOmjPnipC0tH0orwzQQ8iloopgj/9T8QjSA0p5HFAFK5Imc8U7pSYAoOaRImSTxX3T+wnlfGPin/rwg/wDR1fC546V9z/sJnPjHxTn/AKB8H/o6s6nwn574q/8AJPYv0X/pSPlD4nf8lL8Wf9ha+/8AR71wxrufif8A8lL8WY/6C19/6PeuGNaJaH2eUf7pR/wx/JHsn7P/APyVbRz/ALNz/wCiXq3+0Tz8VtQB/wCeFr/6KFU/gB/yVbR/925/9EvVz9orI+KuoevkWv8A6KFfqMf+SOf/AGEf+2G9v3/yPGLO3Fze29q33ZpEQ464dgD/ADr6p/aU1/UtCu9G8CaHO9jpFvZrJ5cLFN2GaNVbGCVUJwOmTk1898CPAWj+PfEl5FrUkyR6ZClxH5LBSZBIANxIPA9K+w/HXwf8JfEPV49a19roXEUIgHkShE2hmYcFTzljX0fAvBWY4vIcTPBtJ1pRSd7e7Fy5k9NE3b1MsRWiqi5uh8+/s2+IdS1u61jwJrU73ukT2bSeXMxfblljdVLfwsr8jpkZ9a+Vr63W0vri0T7sErxjPXCMQP5V+lfgX4PeE/h7q0mtaA1y08sRhInlDrtLK3QKOcqK+O/jv4D0fwL4ks49GkmdNThkuJPOYMRIZCDtIA4PpRx1wVmOEyHDTxjTlRlJN3u+WTjypd0nf0FQrRdR8vU6n9kQj/he2j/9e17/AOiGqp+1eP8Ai+/iA/7Fn/6TR1Z/ZEz/AML10jH/AD633/ohqrftX/8AJdvEH/XOz/8ASaOvwb7Z+fL/AJLF/wDYP/7kPnPFdP4G/wCR28P/APYQtf8A0atcuTiuo8Dc+NtAz/0ELX/0aterlS/2ql/ij+aP0+a91n0J+1f/AMjFoB/6dZv/AEYK+Ul619W/tYHPiPQB/wBOk3/owV8qAV9n4rf8lDivVf8ApKMcH/DQtFFFfnx0sQ9RS0zJp9Akf//V/EDjvS59KCMUgqUibCUUpFHTrTEOPqK+6P2EyT4v8U/9eEH/AKOr4XzkYr7c/YYvraDx74isZW2y3Ono8Y/vCKZd2PpuFZVn7p+feKcW+H8XZfZX/pSPlv4nf8lM8W/9ha+/9HvXDE9q9K+Mmk3ujfFjxdYXyGOT+0rmUAjqkzmVGHsysCK8121cXpc+uyWalg6Mou6cY/kj2T9n8/8AF1tI/wB24/8ARL1Z/aJz/wALW1DP/PC1/wDRQqt+z+P+Lr6Pn+7c/wDol6tftFf8lV1D/rha/wDooV+pQ/5I5/8AYR/7YdV/3/y/U7j9lP8A5GfXf+vJP/Ror7h3DNflx8OviNqvw31K61LS7aG6a7hELpNuwAGDAgqQc8V69/w1P4s/6Atj/wB9S/8AxVfpHhn4m5RlmUU8Ji5tTTlf3W922tUcuJws5Tcoo+6d3NfD/wC1YQfEuhY7Wcn/AKMNVv8AhqfxZ/0BbH/vqX/4qvIviJ8RtV+JOo2moarbQ2hsojCiw7sEFixJLEnOTT8S/E7KMyyipg8JNubcXrFrZpvVjw2GnCfNLY9V/ZDP/F9tH/69r7/0Q1QftX8fHbxAR/cs/wD0mjrY/Y50u8vPjVbahboWg02yu5J27KJE8pfxLNx9DXNftR3ltffHXxM9q4dIWt4WIOfnigjVh+ByK/mC/vnwFNqXGMuXph9fL37nz6RjNdR4G/5HXQP+wha/+jVrl2rqPA3/ACOugf8AYQtf/Rq16uU/71S/xR/NH6hNe6z6E/av/wCRi0A/9Os3/owV8q5z0r6p/av/AORi8P8A/XpN/wCjBXyop7V9n4r/APJQ4v1X/pKOfCfw4js4o60UDivz3c6dxu30p1ITil60IZ//1vxBalHShulIopLYAI9KbTzntQQKRAyu0+HnjjVfhx4y03xjo4Dz2EmWjY4WWJxtkjbHZlJGexwe1cZg0cCk0tjDFYWnXpyo1VeMk013T3R+qHiHwn8H/wBrTSbbX/Dup/2d4itogrsgU3MS/wDPK5gJG9VP3XUj2bHFfMvxU/ZN1/4ZeDr3xkNft9Vg04xmaFYHhcJI4TcCWYEgsMjjivlG0uruxuFvLGd7adPuyRMUcfRlIIr9JL+9vdQ/Yde/1G5lvLmazG+WZ2kkYjUABlmJJ4GOTWFnHZn4njcuzHhyrhKWExblhp1Yw5JRTcVJ6pS3t22sfFXwPv4NO+KehS3LbUmkkhyf700bIv5sQK+h/HHwE8afFb4uSy6Mq2ulS2kDz38wJihKApswOXc7chR2OSQK8y/Z++AniT4p6vD4geSTSvD+nTqz3gGJJZI2z5dvngsCOW6L7nivuy/8Waemr6/4K8D+JIY9ZhiaJzHtmktmccNsb5WeM9cZ2nrg8V+u8HxhmuUV8hhJKtzKpTu7KTSs43722/4DPtc64i9pXrYDK6kfrMY31TcY6pa20vrovS6Pnc/sH+Is8eL7X/wDl/8Ai6P+GDvEX/Q32v8A4By//F153qvw0/aOsLtorDxJeanEST5seqSx5z3KyOpB/P61ljwF+02OP7U1H/wbn/47XyNXgHPYScXhKl/KDf4pNHhrKOKP+hpD/wAFx/yPWP8Ahg7xH/0N9r/4By//ABdTwfsG60ZV+0+MIPKz83l2Tlse26QCvIP+EE/aaB/5Cmo/+Dc//Hajk+H/AO0tKrRy6lqDq3BB1ckH8PNqP9Rc7/6BKn/gEv8AIX9j8UNa5pD/AMFxPq7UvEnwn/ZN8E3fh7wzMuqeK7sZ2MyvcSzYwslwV4iiTOQnGegBJLV+Yt/f3mq391quoyme7vZXmmkbq8kjFmY/UmvUdU+BnxT0+zudYvdJ81IgZJDHNHLIe5O1WLMe5xk15GDn2rycdkmLwMlHF0pQb25k1f0ufU8I8J0suVStKq6tao7zm932SXRLt/wLLx3rtPhpp9xqfxB8PWlshZjfQucdkiYOx+gVSau+Cvhb4z+IEclz4etUNrE/lvPNIscYfGSBnkkAjOAa+rPBvgjwt8A9IufF3jK+judTkQxhkGMA9YrdW+ZmY9WOOPQZz9xwVwRjMVWp4ytDkw8WpSnLRcqd3Zve9raH1NfERScVqzzH9qq8hm8XaNZxnLwWTM3t5khxn/vmvl4Cum8Y+Kb3xn4mvvEl+Nr3b/KmciONRhEHso/M5Peub618/wAZ51DMc0xGMpr3ZS09FovwRdCHLBRYUUUV80kdCEIzSgdqKKdgP//X/EIjNAGKD04oHSkhMXHemk4NOooaJkhM0gw34U7GaKQrWE6Cv1z+CnhXR/G/wCzP4d8K+IUd9NvoG85UbYWWO8eTbu6gErg45xnBHWvyONelWvxj+I1l4Cb4aWeruhBaBz0AO25bc0YlA3hGJJK55yR0OKyqRb2PgfELhXFZth6FLC1FCUKileT0ST1VuqvdbepL+0j+0tY+HdOf4X/AAveO2trNDaXt9AAqJGvymC2I9Ojyd/7oOOPi7W9b1TxHq13r2u3T3l9eSGSaaQ5Z2PuarBcfhSEcnFXSbg7x3Pe4X4VwuU4f2GHd29ZSfxSfdr+rHsF58dPirfWp09tapggwRHBBGh57NhMn8a1v8AhoX4q/8AQSh/8BYv/ia8SIzR0r6qnxvnEY2jjKlv+cpf5n0HsKf8qPbf+Gh/it/0E4f/AWL/Cj/AIaH+K3/AEEof/AWL/4mvEqKv/XrOv8AoMqf+By/zBUKf8qPpLwp+0p4ws9aifxeyadpbfLIkUKRS5/voVwCR/dPX1Brz3xx8W/E/xD1eTXteZLZYyUtrOAskNvH/dUMSWJ/iY8ntnoPKq9B+Hnw817x5qIs9NUQWkJH2i7kB8qID0x95j2Ucnvkc19Nk3HixFN5fxBetRl9p6zg/5k936fns8auHt71PRnlfibxFq/i/xBe+J9emE19eybpHIwBgYVVHZVUAAdgK5oDFeuftA+FNE8EfEvUPDmgJIltBFAweRtzs7xhiScDjJ6V5GK+f41zqGY5piMZSXuyl7vklov0OijDlgohtPWloxRXzxsFGAaKKYH//Z">
@@ -623,6 +759,23 @@
       </div>
       <div class="username-row">
         <input type="text" id="usernameInput" placeholder="Your display name (optional)" aria-label="Display name" autocomplete="off" spellcheck="false" maxlength="30">
+      </div>
+      <div class="persistence-row">
+        <label class="toggle-label" for="persistToggle">
+          <span>Save chat history</span>
+          <span class="toggle-switch">
+            <input type="checkbox" id="persistToggle">
+            <span class="toggle-slider"></span>
+          </span>
+        </label>
+        <div class="persistence-setup" id="persistenceSetup" style="display:none;">
+          <input type="password" id="persistKeyInput" placeholder="Encryption password (min 12 chars)" autocomplete="off" minlength="12">
+          <div class="persist-btn-row">
+            <button class="secondary persist-btn" id="persistSaveKeyBtn" disabled>Lock</button>
+            <button class="secondary persist-btn persist-erase" id="persistEraseBtn" style="display:none;">Erase All</button>
+          </div>
+          <div class="persist-hint" id="persistHint"></div>
+        </div>
       </div>
       <div class="room-list" id="roomList"></div>
     </aside>
@@ -685,6 +838,19 @@
     </div>
   </div>
 
+  <!-- Unlock overlay (returning user with saved encrypted chats) -->
+  <div class="qr-overlay" id="persistUnlockOverlay">
+    <div class="persist-unlock-modal">
+      <h2>Unlock Chat History</h2>
+      <p>Enter your encryption password to restore saved chats, or erase everything to start fresh.</p>
+      <input type="password" id="unlockKeyInput" placeholder="Encryption password" autocomplete="off">
+      <div class="persist-hint" id="unlockHint"></div>
+      <button id="unlockBtn" disabled>Unlock</button>
+      <button class="secondary" id="unlockSkipBtn">Skip (no history)</button>
+      <button class="secondary persist-erase" id="unlockEraseBtn">Erase Everything</button>
+    </div>
+  </div>
+
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <script src="https://unpkg.com/qrcode-generator@1.4.4/qrcode.js"></script>
 
@@ -718,8 +884,20 @@
       const roomListEl    = $('roomList');
       const headerTitle   = $('headerTitle');
       const notifDot      = $('notifDot');
-      const usernameInput = $('usernameInput');
-      const newChatBtn    = $('newChatBtn');
+      const usernameInput  = $('usernameInput');
+      const newChatBtn     = $('newChatBtn');
+      const persistToggle  = $('persistToggle');
+      const persistSetup   = $('persistenceSetup');
+      const persistKeyInput= $('persistKeyInput');
+      const persistSaveBtn = $('persistSaveKeyBtn');
+      const persistEraseBtn= $('persistEraseBtn');
+      const persistHint    = $('persistHint');
+      const unlockOverlay  = $('persistUnlockOverlay');
+      const unlockKeyInput = $('unlockKeyInput');
+      const unlockBtn      = $('unlockBtn');
+      const unlockSkipBtn  = $('unlockSkipBtn');
+      const unlockEraseBtn = $('unlockEraseBtn');
+      const unlockHint     = $('unlockHint');
 
       // ── State ──
       let peer = null;
@@ -729,6 +907,9 @@
       let myUsername = localStorage.getItem('peervault_username') || '';
       let heartbeatInterval = null;
       let appInForeground = true;
+      let persistKey = null;
+      let persistEnabled = false;
+      let persistSaveTimer = null;
 
       usernameInput.value = myUsername;
 
@@ -876,6 +1057,134 @@
         const ct = new Uint8Array(payload.ct);
         const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
         return new TextDecoder().decode(decrypted);
+      }
+
+      // ── Persistence Crypto (PBKDF2 + AES-256-GCM) ──
+      const PERSIST_SALT_KEY = 'peervault_persist_salt';
+      const PERSIST_DATA_KEY = 'peervault_persist_data';
+      const PERSIST_CHECK_KEY = 'peervault_persist_check';
+      const PERSIST_ENABLED_KEY = 'peervault_persist_enabled';
+      const PBKDF2_ITERATIONS = 600000;
+      const PERSIST_SAVE_DELAY = 2000;
+
+      function getOrCreateSalt() {
+        let b64 = localStorage.getItem(PERSIST_SALT_KEY);
+        if (b64) return Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+        localStorage.setItem(PERSIST_SALT_KEY, btoa(String.fromCharCode(...salt)));
+        return salt;
+      }
+
+      async function derivePersistKey(password, salt) {
+        const keyMaterial = await crypto.subtle.importKey(
+          'raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']
+        );
+        return crypto.subtle.deriveKey(
+          { name: 'PBKDF2', salt, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
+          keyMaterial,
+          { name: 'AES-GCM', length: 256 },
+          false,
+          ['encrypt', 'decrypt']
+        );
+      }
+
+      async function persistEncrypt(data, key) {
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const encoded = new TextEncoder().encode(JSON.stringify(data));
+        const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
+        return JSON.stringify({ iv: Array.from(iv), ct: Array.from(new Uint8Array(ciphertext)) });
+      }
+
+      async function persistDecrypt(stored, key) {
+        const { iv, ct } = JSON.parse(stored);
+        const decrypted = await crypto.subtle.decrypt(
+          { name: 'AES-GCM', iv: new Uint8Array(iv) }, key, new Uint8Array(ct)
+        );
+        return JSON.parse(new TextDecoder().decode(decrypted));
+      }
+
+      function schedulePersistSave() {
+        if (!persistEnabled || !persistKey) return;
+        clearTimeout(persistSaveTimer);
+        persistSaveTimer = setTimeout(() => saveAllChats(), PERSIST_SAVE_DELAY);
+      }
+
+      async function saveAllChats() {
+        if (!persistEnabled || !persistKey) return;
+        try {
+          const data = {
+            version: 1,
+            savedAt: Date.now(),
+            rooms: rooms.map(r => ({
+              remotePeerId: r.remotePeerId,
+              remoteName: r.remoteName,
+              history: r.history,
+            })),
+          };
+          const encrypted = await persistEncrypt(data, persistKey);
+          localStorage.setItem(PERSIST_DATA_KEY, encrypted);
+        } catch (e) {
+          console.error('PeerVault: Failed to save chat history', e);
+        }
+      }
+
+      async function loadAllChats(password) {
+        const salt = getOrCreateSalt();
+        const key = await derivePersistKey(password, salt);
+
+        // Verify password with check value
+        const checkStored = localStorage.getItem(PERSIST_CHECK_KEY);
+        if (checkStored) {
+          try {
+            const checkResult = await persistDecrypt(checkStored, key);
+            if (checkResult !== 'peervault_ok') throw new Error('bad check');
+          } catch {
+            throw new Error('Wrong password');
+          }
+        }
+
+        // Decrypt data
+        const dataStored = localStorage.getItem(PERSIST_DATA_KEY);
+        if (dataStored) {
+          const data = await persistDecrypt(dataStored, key);
+          for (const saved of (data.rooms || [])) {
+            const room = createRoom(saved.remotePeerId);
+            room.remoteName = saved.remoteName || '';
+            room.history = saved.history || [];
+          }
+        }
+
+        persistKey = key;
+        persistEnabled = true;
+        renderSidebar();
+      }
+
+      async function eraseAllPersistData() {
+        if (!confirm('This will permanently delete all saved chat history. This cannot be undone. Continue?')) return;
+
+        localStorage.removeItem(PERSIST_SALT_KEY);
+        localStorage.removeItem(PERSIST_DATA_KEY);
+        localStorage.removeItem(PERSIST_CHECK_KEY);
+        localStorage.removeItem(PERSIST_ENABLED_KEY);
+
+        persistKey = null;
+        persistEnabled = false;
+
+        persistToggle.checked = false;
+        persistSetup.style.display = 'none';
+        persistKeyInput.value = '';
+        persistKeyInput.disabled = false;
+        persistSaveBtn.style.display = '';
+        persistSaveBtn.disabled = true;
+        persistEraseBtn.style.display = 'none';
+        persistHint.textContent = '';
+        persistHint.className = 'persist-hint';
+
+        unlockOverlay.classList.remove('active');
+
+        for (const room of rooms) room.history = [];
+        if (activeRoomId) switchRoom(activeRoomId);
+        else showNewChatView();
       }
 
       // ── Helpers ──
@@ -1064,6 +1373,7 @@
           else showNewChatView();
         }
         renderSidebar();
+        schedulePersistSave();
       }
 
       // ── View management ──
@@ -1166,12 +1476,14 @@
         if (room.id === activeRoomId) appendMessageEl(text, sender, isOwn);
         else room.unreadCount++;
         renderSidebar();
+        schedulePersistSave();
       }
 
       function addSystemMessage(room, text) {
         room.history.push({ kind: 'system', text, timestamp: Date.now() });
         if (room.id === activeRoomId) appendSystemEl(text);
         renderSidebar();
+        schedulePersistSave();
       }
 
       function setStatus(state, text) {
@@ -1673,6 +1985,9 @@
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
           ensurePeerAndRooms();
+        } else if (persistEnabled && persistKey) {
+          clearTimeout(persistSaveTimer);
+          saveAllChats();
         }
       });
 
@@ -1681,11 +1996,113 @@
         capPlugins.App.addListener('appStateChange', (state) => {
           if (state.isActive) {
             ensurePeerAndRooms();
+          } else if (persistEnabled && persistKey) {
+            clearTimeout(persistSaveTimer);
+            saveAllChats();
           }
         });
       }
 
+      // ── Persistence UI ──
+      persistToggle.addEventListener('change', () => {
+        if (persistToggle.checked) {
+          persistSetup.style.display = '';
+          persistKeyInput.focus();
+        } else {
+          eraseAllPersistData();
+        }
+      });
+
+      persistKeyInput.addEventListener('input', () => {
+        const len = persistKeyInput.value.length;
+        persistSaveBtn.disabled = len < 12;
+        if (len > 0 && len < 12) {
+          persistHint.textContent = (12 - len) + ' more characters needed';
+          persistHint.className = 'persist-hint error';
+        } else if (len >= 12) {
+          persistHint.textContent = 'Ready to lock';
+          persistHint.className = 'persist-hint success';
+        } else {
+          persistHint.textContent = '';
+          persistHint.className = 'persist-hint';
+        }
+      });
+
+      persistSaveBtn.addEventListener('click', async () => {
+        const password = persistKeyInput.value;
+        if (password.length < 12) return;
+        persistSaveBtn.disabled = true;
+        persistHint.textContent = 'Deriving key...';
+        persistHint.className = 'persist-hint';
+        try {
+          const salt = getOrCreateSalt();
+          const key = await derivePersistKey(password, salt);
+          const checkEncrypted = await persistEncrypt('peervault_ok', key);
+          localStorage.setItem(PERSIST_CHECK_KEY, checkEncrypted);
+          localStorage.setItem(PERSIST_ENABLED_KEY, '1');
+          persistKey = key;
+          persistEnabled = true;
+          await saveAllChats();
+          persistHint.textContent = 'Chat history will be saved encrypted.';
+          persistHint.className = 'persist-hint success';
+          persistKeyInput.value = '';
+          persistKeyInput.disabled = true;
+          persistSaveBtn.style.display = 'none';
+          persistEraseBtn.style.display = '';
+        } catch (e) {
+          persistHint.textContent = 'Error: ' + e.message;
+          persistHint.className = 'persist-hint error';
+          persistSaveBtn.disabled = false;
+        }
+      });
+
+      persistEraseBtn.addEventListener('click', () => eraseAllPersistData());
+      unlockEraseBtn.addEventListener('click', () => eraseAllPersistData());
+
+      unlockKeyInput.addEventListener('input', () => {
+        unlockBtn.disabled = unlockKeyInput.value.length < 12;
+      });
+
+      unlockKeyInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') unlockBtn.click();
+      });
+
+      unlockBtn.addEventListener('click', async () => {
+        const password = unlockKeyInput.value;
+        if (password.length < 12) return;
+        unlockBtn.disabled = true;
+        unlockHint.textContent = 'Decrypting...';
+        unlockHint.className = 'persist-hint';
+        try {
+          await loadAllChats(password);
+          unlockOverlay.classList.remove('active');
+          unlockKeyInput.value = '';
+          persistToggle.checked = true;
+          persistSetup.style.display = '';
+          persistKeyInput.disabled = true;
+          persistSaveBtn.style.display = 'none';
+          persistEraseBtn.style.display = '';
+          persistHint.textContent = 'Chat history is being saved encrypted.';
+          persistHint.className = 'persist-hint success';
+        } catch (e) {
+          unlockHint.textContent = e.message === 'Wrong password' ? 'Wrong password. Try again.' : 'Decryption failed: ' + e.message;
+          unlockHint.className = 'persist-hint error';
+          unlockBtn.disabled = false;
+        }
+      });
+
+      unlockSkipBtn.addEventListener('click', () => {
+        unlockOverlay.classList.remove('active');
+        unlockKeyInput.value = '';
+      });
+
       // ── Start ──
+      // Check if returning user with encrypted data
+      if (localStorage.getItem(PERSIST_DATA_KEY) && localStorage.getItem(PERSIST_ENABLED_KEY) === '1') {
+        unlockOverlay.classList.add('active');
+        persistToggle.checked = true;
+      }
+
       initPeer();
       startHeartbeat();
     })();
