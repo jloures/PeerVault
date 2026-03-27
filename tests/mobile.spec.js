@@ -177,15 +177,15 @@ test.describe('Mobile Layout', () => {
     expect(padding).toBeLessThanOrEqual(12);
   });
 
-  test('body uses dynamic viewport height (dvh)', async ({ page }) => {
+  test('body uses percentage height for keyboard compatibility', async ({ page }) => {
     await page.goto('/' + PEER_PARAMS);
-    const hasViewportHeight = await page.evaluate(() => {
+    const bodyHeight = await page.evaluate(() => {
       const rules = Array.from(document.styleSheets)
         .flatMap(s => { try { return Array.from(s.cssRules); } catch { return []; } });
       const bodyRule = rules.find(r => r.selectorText === 'body');
-      return bodyRule?.cssText?.includes('dvh') ?? false;
+      return bodyRule?.style?.height ?? '';
     });
-    expect(hasViewportHeight).toBe(true);
+    expect(bodyHeight).toBe('100%');
   });
 
   test('viewport meta tag has viewport-fit=cover', async ({ page }) => {
