@@ -984,6 +984,28 @@
         } catch {}
       }
 
+      // ── Web Lock (prevents browser from discarding/freezing the tab) ──
+      if (navigator.locks) {
+        navigator.locks.request('peervault_keepalive', () => new Promise(() => {}));
+      }
+
+      // ── Screen Wake Lock (prevents screen from dimming while connected) ──
+      let wakeLock = null;
+      async function acquireWakeLock() {
+        if (!('wakeLock' in navigator) || wakeLock) return;
+        try { wakeLock = await navigator.wakeLock.request('screen'); } catch {}
+      }
+      function releaseWakeLock() {
+        if (wakeLock) { try { wakeLock.release(); } catch {} wakeLock = null; }
+      }
+      function hasActiveConnection() {
+        return rooms.some(r => r.conn && r.conn.open);
+      }
+      // Re-acquire wake lock when tab becomes visible (browser auto-releases on hide)
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && hasActiveConnection()) acquireWakeLock();
+      });
+
       // ── Local notifications (alert on incoming messages while backgrounded) ──
       let notificationsEnabled = false;
       if (isNative && capPlugins.LocalNotifications) {
@@ -1581,6 +1603,7 @@
                 if (isMobile()) connectBar.classList.add('hidden-connected');
               }
               addSystemMessage(room, 'E2E encryption established');
+              acquireWakeLock();
               renderSidebar();
             } catch (e) {
               if (room.id === activeRoomId) setStatus('error', 'Key exchange failed');
@@ -1655,6 +1678,7 @@
             addSystemMessage(room, 'Peer disconnected');
             if (room.id === activeRoomId) setStatus('', 'Disconnected');
           }
+          if (!hasActiveConnection()) releaseWakeLock();
           renderSidebar();
         });
 
@@ -1999,6 +2023,14 @@
           clearTimeout(persistSaveTimer);
           saveAllChats();
         }
+      });
+
+      // Page Lifecycle: freeze/resume (catches Chrome background tab freezing)
+      document.addEventListener('freeze', () => {
+        if (persistEnabled && persistKey) { clearTimeout(persistSaveTimer); saveAllChats(); }
+      });
+      document.addEventListener('resume', () => {
+        ensurePeerAndRooms();
       });
 
       // Capacitor app resume
