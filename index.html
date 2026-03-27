@@ -758,6 +758,7 @@
           <button class="secondary" id="copyBtn" title="Copy your Peer ID" disabled>Copy</button>
           <button class="secondary" id="shareBtn" title="Share your Peer ID" disabled>Share</button>
           <button class="secondary" id="qrBtn" title="Show QR code" disabled>QR</button>
+          <button class="secondary" id="scanBtn" title="Scan QR code" style="display:none">Scan</button>
         </div>
       </div>
       <div class="username-row">
@@ -877,6 +878,7 @@
       const encBadge      = $('encBadge');
       const connectBar    = $('connectBar');
       const qrBtn         = $('qrBtn');
+      const scanBtn       = $('scanBtn');
       const qrOverlay     = $('qrOverlay');
       const qrCanvas      = $('qrCanvas');
       const qrCloseBtn    = $('qrCloseBtn');
@@ -1040,6 +1042,74 @@
       document.addEventListener('visibilitychange', () => {
         appInForeground = document.visibilityState === 'visible';
       });
+
+      // ── QR Scanner (native apps only) ──
+      const BarcodeScanner = isNative && capPlugins.BarcodeScanner;
+      if (BarcodeScanner) {
+        scanBtn.style.display = '';
+        scanBtn.addEventListener('click', async () => {
+          try {
+            // Check / request camera permission
+            let perms = await BarcodeScanner.checkPermissions();
+            if (perms.camera !== 'granted') {
+              perms = await BarcodeScanner.requestPermissions();
+              if (perms.camera !== 'granted') {
+                alert('Camera permission is required to scan QR codes.');
+                return;
+              }
+            }
+            const { barcodes } = await BarcodeScanner.scan({
+              formats: ['QR_CODE'],
+            });
+            if (barcodes && barcodes.length > 0) {
+              const raw = barcodes[0].rawValue || '';
+              // Extract peer ID from PeerVault URL or use raw value
+              let peerId = null;
+              try {
+                const url = new URL(raw);
+                const hp = new URLSearchParams(url.hash.slice(1));
+                peerId = hp.get('peer');
+              } catch {
+                // Not a URL — treat raw value as a peer ID directly
+                peerId = raw.trim();
+              }
+              if (peerId && peerId !== myIdEl.textContent) {
+                remoteIdInput.value = peerId;
+                closeSidebar();
+                connectBtn.click();
+              }
+            }
+          } catch (e) {
+            if (e.message !== 'scan canceled' && e.code !== 'SCAN_CANCELED') {
+              console.error('QR scan error:', e);
+            }
+          }
+        });
+      }
+
+      // ── Deep link handler (native apps: open PeerVault URLs in-app) ──
+      function handleDeepLink(urlStr) {
+        try {
+          const url = new URL(urlStr);
+          const hp = new URLSearchParams(url.hash.slice(1));
+          const targetPeer = hp.get('peer');
+          if (targetPeer && targetPeer !== myIdEl.textContent) {
+            remoteIdInput.value = targetPeer;
+            connectBtn.click();
+          }
+        } catch {}
+      }
+
+      if (isNative && capPlugins.App) {
+        // Handle deep links when app is already running
+        capPlugins.App.addListener('appUrlOpen', (event) => {
+          handleDeepLink(event.url);
+        });
+        // Handle deep link that cold-launched the app
+        capPlugins.App.getLaunchUrl().then(result => {
+          if (result && result.url) handleDeepLink(result.url);
+        }).catch(() => {});
+      }
 
       // ── E2E Crypto (ECDH + AES-256-GCM) ──
       const ECDH_PARAMS = { name: 'ECDH', namedCurve: 'P-256' };
