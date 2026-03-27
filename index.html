@@ -133,6 +133,19 @@
     .room-list::-webkit-scrollbar { width: 4px; }
     .room-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
+    .sidebar-footer {
+      padding: 10px 16px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .sidebar-footer button {
+      width: 100%;
+      font-size: 11px !important;
+      padding: 6px 10px !important;
+      min-height: auto !important;
+    }
+
     .room-item {
       display: flex;
       align-items: center;
@@ -782,6 +795,9 @@
         </div>
       </div>
       <div class="room-list" id="roomList"></div>
+      <div class="sidebar-footer">
+        <button class="secondary persist-erase" id="resetIdentityBtn" title="Generate a new ID and erase all data">Reset Identity</button>
+      </div>
     </aside>
 
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
@@ -890,6 +906,7 @@
       const notifDot      = $('notifDot');
       const usernameInput  = $('usernameInput');
       const newChatBtn     = $('newChatBtn');
+      const resetIdBtn     = $('resetIdentityBtn');
       const persistToggle  = $('persistToggle');
       const persistSetup   = $('persistenceSetup');
       const persistKeyInput= $('persistKeyInput');
@@ -1926,6 +1943,47 @@
         showNewChatView();
         closeSidebar();
         remoteIdInput.focus();
+      });
+
+      resetIdBtn.addEventListener('click', () => {
+        if (!confirm('This will generate a new identity and permanently erase all chats, saved history, and your current peer ID. This cannot be undone. Continue?')) return;
+
+        // Cancel all reconnect timers and close connections
+        for (const room of rooms) {
+          cancelReconnect(room);
+          if (room.conn && room.conn.open) try { room.conn.close(); } catch {}
+        }
+        rooms = [];
+
+        // Erase persistence data
+        localStorage.removeItem(PERSIST_SALT_KEY);
+        localStorage.removeItem(PERSIST_DATA_KEY);
+        localStorage.removeItem(PERSIST_CHECK_KEY);
+        localStorage.removeItem(PERSIST_ENABLED_KEY);
+        persistKey = null;
+        persistEnabled = false;
+        persistToggle.checked = false;
+        persistSetup.style.display = 'none';
+        persistKeyInput.value = '';
+        persistKeyInput.disabled = false;
+        persistSaveBtn.style.display = '';
+        persistSaveBtn.disabled = true;
+        persistEraseBtn.style.display = 'none';
+        persistHint.textContent = '';
+        persistHint.className = 'persist-hint';
+
+        // Erase saved peer ID and username
+        localStorage.removeItem(PEER_ID_KEY);
+        localStorage.removeItem('peervault_username');
+        usernameInput.value = '';
+        myUsername = '';
+
+        // Destroy current peer and re-init with fresh ID
+        if (peer && !peer.destroyed) try { peer.destroy(); } catch {}
+        activeRoomId = null;
+        showNewChatView();
+        closeSidebar();
+        initPeer();
       });
 
       copyBtn.addEventListener('click', async () => {
