@@ -432,6 +432,9 @@
       margin: 8px 0;
     }
 
+    .msg-time.msg-saved { opacity: 0.6; }
+    .msg-system.msg-saved { opacity: 0.6; }
+
     .typing-indicator {
       align-self: flex-start;
       font-size: 12px;
@@ -846,7 +849,6 @@
       <input type="password" id="unlockKeyInput" placeholder="Encryption password" autocomplete="off">
       <div class="persist-hint" id="unlockHint"></div>
       <button id="unlockBtn" disabled>Unlock</button>
-      <button class="secondary" id="unlockSkipBtn">Skip (no history)</button>
       <button class="secondary persist-erase" id="unlockEraseBtn">Erase Everything</button>
     </div>
   </div>
@@ -895,7 +897,6 @@
       const unlockOverlay  = $('persistUnlockOverlay');
       const unlockKeyInput = $('unlockKeyInput');
       const unlockBtn      = $('unlockBtn');
-      const unlockSkipBtn  = $('unlockSkipBtn');
       const unlockEraseBtn = $('unlockEraseBtn');
       const unlockHint     = $('unlockHint');
 
@@ -1150,7 +1151,7 @@
           for (const saved of (data.rooms || [])) {
             const room = createRoom(saved.remotePeerId);
             room.remoteName = saved.remoteName || '';
-            room.history = saved.history || [];
+            room.history = (saved.history || []).map(h => ({ ...h, saved: true }));
           }
         }
 
@@ -1159,8 +1160,8 @@
         renderSidebar();
       }
 
-      async function eraseAllPersistData() {
-        if (!confirm('This will permanently delete all saved chat history. This cannot be undone. Continue?')) return;
+      function eraseAllPersistData(skipConfirm) {
+        if (!skipConfirm && !confirm('This will permanently delete all saved chat history. This cannot be undone. Continue?')) return;
 
         localStorage.removeItem(PERSIST_SALT_KEY);
         localStorage.removeItem(PERSIST_DATA_KEY);
@@ -1390,8 +1391,9 @@
         messagesEl.innerHTML = '';
         emptyState.style.display = 'none';
         for (const entry of room.history) {
-          if (entry.kind === 'system') appendSystemEl(entry.text);
-          else appendMessageEl(entry.text, entry.sender, entry.isOwn);
+          const opts = { saved: entry.saved, timestamp: entry.timestamp };
+          if (entry.kind === 'system') appendSystemEl(entry.text, opts);
+          else appendMessageEl(entry.text, entry.sender, entry.isOwn, opts);
         }
         messagesEl.scrollTop = messagesEl.scrollHeight;
 
@@ -1441,7 +1443,8 @@
       }
 
       // ── DOM helpers (append to visible DOM, not history) ──
-      function appendMessageEl(text, sender, isOwn) {
+      function appendMessageEl(text, sender, isOwn, opts) {
+        opts = opts || {};
         emptyState.style.display = 'none';
         const wrapper = document.createElement('div');
         wrapper.className = 'msg ' + (isOwn ? 'own' : 'their');
@@ -1453,7 +1456,9 @@
         bubble.textContent = text;
         const time = document.createElement('div');
         time.className = 'msg-time';
-        time.textContent = formatTime(Date.now());
+        const ts = opts.timestamp ? formatTime(opts.timestamp) : formatTime(Date.now());
+        time.textContent = opts.saved ? ts + ' \u00b7 saved' : ts;
+        if (opts.saved) time.classList.add('msg-saved');
         wrapper.appendChild(senderEl);
         wrapper.appendChild(bubble);
         wrapper.appendChild(time);
@@ -1461,10 +1466,12 @@
         messagesEl.scrollTop = messagesEl.scrollHeight;
       }
 
-      function appendSystemEl(text) {
+      function appendSystemEl(text, opts) {
+        opts = opts || {};
         emptyState.style.display = 'none';
         const el = document.createElement('div');
         el.className = 'msg-system';
+        if (opts.saved) el.classList.add('msg-saved');
         el.textContent = text;
         messagesEl.appendChild(el);
         messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -2009,7 +2016,15 @@
           persistSetup.style.display = '';
           persistKeyInput.focus();
         } else {
-          eraseAllPersistData();
+          if (persistEnabled) {
+            if (!confirm('Are you sure you want to stop saving chat history? Existing saved data will be erased.')) {
+              persistToggle.checked = true;
+              return;
+            }
+            eraseAllPersistData(true);
+          } else {
+            persistSetup.style.display = 'none';
+          }
         }
       });
 
@@ -2089,11 +2104,6 @@
           unlockHint.className = 'persist-hint error';
           unlockBtn.disabled = false;
         }
-      });
-
-      unlockSkipBtn.addEventListener('click', () => {
-        unlockOverlay.classList.remove('active');
-        unlockKeyInput.value = '';
       });
 
       // ── Start ──
