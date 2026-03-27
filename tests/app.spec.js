@@ -150,13 +150,13 @@ test.describe('Connection Validation', () => {
     await expect(page.locator('.msg-system')).toContainText('cannot connect to yourself');
   });
 
-  test('connecting to nonexistent peer shows error', async ({ page }) => {
+  test('connecting to nonexistent peer shows retrying status', async ({ page }) => {
     await page.goto('/' + PEER_PARAMS);
     await waitForPeerId(page);
 
     await page.locator('#remoteIdInput').fill('nonexistent-peer-id-12345');
     await page.locator('#connectBtn').click();
-    await expect(page.locator('.msg-system').last()).toContainText('Peer not found', { timeout: PEER_TIMEOUT });
+    await expect(page.locator('.msg-system').last()).toContainText('Peer not online', { timeout: PEER_TIMEOUT });
   });
 });
 

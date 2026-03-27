@@ -1256,7 +1256,7 @@
       // ── Auto-reconnect ──
       const RECONNECT_BASE_DELAY = 2000;
       const RECONNECT_MAX_DELAY = 30000;
-      const RECONNECT_MAX_ATTEMPTS = 50;
+      const RECONNECT_MAX_ATTEMPTS = 200;
       const HEARTBEAT_INTERVAL = 15000;
       const HEARTBEAT_TIMEOUT = 10000;
 
@@ -1267,6 +1267,8 @@
         if (room.reconnectAttempts >= RECONNECT_MAX_ATTEMPTS) {
           addSystemMessage(room, 'Gave up reconnecting after ' + RECONNECT_MAX_ATTEMPTS + ' attempts');
           room.shouldReconnect = false;
+          if (room.id === activeRoomId) setStatus('', 'Disconnected');
+          connectBtn.disabled = false;
           return;
         }
 
@@ -1794,11 +1796,21 @@
             if (peer && !peer.destroyed) { try { peer.destroy(); } catch {} }
             setTimeout(() => initPeer(), 1000);
           } else if (err.type === 'peer-unavailable') {
-            setStatus('error', 'Peer not found');
-            const room = getActiveRoom();
-            if (room) addSystemMessage(room, 'Peer not found — check the ID and try again');
-            else appendSystemEl('Peer not found — check the ID and try again');
-            connectBtn.disabled = false;
+            // Find the room waiting for this peer (extract ID from error message)
+            const match = err.message && err.message.match(/peer\s+(\S+)/i);
+            const unavailId = match ? match[1] : null;
+            const room = unavailId ? rooms.find(r => r.remotePeerId === unavailId) : getActiveRoom();
+            if (room && room.shouldReconnect) {
+              room.conn = null;
+              addSystemMessage(room, 'Peer not online — retrying...');
+              if (room.id === activeRoomId) setStatus('connecting', 'Peer not online — waiting...');
+              reconnectRoom(room);
+            } else {
+              setStatus('error', 'Peer not found');
+              if (room) addSystemMessage(room, 'Peer not found — check the ID and try again');
+              else appendSystemEl('Peer not found — check the ID and try again');
+              connectBtn.disabled = false;
+            }
           } else if (err.type === 'disconnected' || err.type === 'network') {
             setStatus('error', 'Network error — reconnecting...');
             setTimeout(() => {
@@ -1901,6 +1913,8 @@
           room = createRoom(remoteId);
         }
 
+        room.shouldReconnect = true;
+        room.reconnectAttempts = 0;
         room.conn = peer.connect(remoteId, { reliable: true });
         setupConnection(room);
         switchRoom(room.id);

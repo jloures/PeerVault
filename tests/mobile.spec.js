@@ -741,14 +741,14 @@ test.describe('Mobile Connection Validation', () => {
     await expect(systemMsg).toBeVisible();
   });
 
-  test('nonexistent peer shows error on mobile', async ({ page }) => {
+  test('nonexistent peer shows retrying status on mobile', async ({ page }) => {
     await page.goto('/' + PEER_PARAMS);
     await waitForPeerId(page);
 
     await page.locator('#remoteIdInput').fill('nonexistent-mobile-peer-99999');
     await page.locator('#connectBtn').click();
 
-    await expect(page.locator('.msg-system').last()).toContainText('Peer not found', { timeout: PEER_TIMEOUT });
+    await expect(page.locator('.msg-system').last()).toContainText('Peer not online', { timeout: PEER_TIMEOUT });
   });
 
   test('duplicate connect switches to existing room', async ({ browser }) => {
