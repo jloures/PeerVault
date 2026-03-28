@@ -2,7 +2,7 @@
 
 A serverless, peer-to-peer encrypted chat application. No backend, no accounts, no data collection — just open, connect, and chat.
 
-[Live Demo](https://jloures.github.io/peervault/)
+[Live Demo](https://jloures.github.io/PeerVault/)
 
 ## Features
 
@@ -115,20 +115,24 @@ Each chat room generates its own ephemeral ECDH key pair using the P-256 (secp25
 crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, false, ['deriveKey'])
 ```
 
-When two peers connect, each side sends its raw public key over the WebRTC data channel:
+When two peers connect, each side sends its ECDH public key **signed with its persistent identity key** over the WebRTC data channel:
 
 ```
 Alice                          Bob
   |                              |
   |--- { type: 'key-exchange',  --->
-  |      publicKey: [bytes] }    |
+  |      publicKey: [bytes],     |
+  |      identityKey: [bytes],   |
+  |      signature: [bytes] }    |
   |                              |
   <--- { type: 'key-exchange',  ---|
-  |      publicKey: [bytes] }    |
+  |      publicKey: [bytes],     |
+  |      identityKey: [bytes],   |
+  |      signature: [bytes] }    |
   |                              |
 ```
 
-Both sides then derive the same shared secret using their own private key and the remote public key. This is a standard [Elliptic Curve Diffie-Hellman](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman) exchange — neither side ever sends their private key.
+Both sides verify the signature, then derive the same shared secret using their own private key and the remote public key. This is a standard [Elliptic Curve Diffie-Hellman](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman) exchange — neither side ever sends their private key.
 
 ### Session key derivation (AES-256-GCM)
 
@@ -168,6 +172,7 @@ AES-GCM provides both confidentiality and integrity — any tampering with the c
 | Chat messages | Yes | AES-256-GCM |
 | Display names | Yes | Sent as encrypted control messages after key exchange |
 | ECDH public keys | No | Safe by design — public keys are meant to be shared |
+| Identity public keys | No | Used for authentication — safe to share |
 | Typing indicators | No | Contain no content, only signal activity |
 | Peer IDs | No | Required by the signaling server to route the initial connection |
 
@@ -181,10 +186,27 @@ There are two independent encryption layers:
 
 The application-layer encryption is the important one: even if someone intercepts the DTLS-encrypted WebRTC traffic and manages to decrypt it, they still only see AES-256-GCM ciphertext.
 
+### Identity keys and authentication
+
+Each device generates a persistent signing key pair (Ed25519, or ECDSA P-256 as fallback) on first launch. This identity key is used to **sign** the ephemeral ECDH public key during key exchange, preventing man-in-the-middle attacks.
+
+Identity verification uses trust-on-first-use (TOFU): the first time you connect to a peer, their identity key is stored. On subsequent connections, PeerVault verifies it hasn't changed. If it has, a warning is shown.
+
+Users can also verify identity out-of-band via **safety numbers** — a 12-character hex code derived from both identity keys. If both peers see the same safety number, no MITM is occurring.
+
+### Message sequence numbers
+
+Every encrypted message includes a sequence number inside the encrypted envelope. Both sides maintain send and receive counters that reset on each new connection. Out-of-order or duplicate messages are detected and dropped, preventing replay attacks.
+
+### Subresource integrity
+
+CDN-loaded scripts (PeerJS, qrcode-generator) use [Subresource Integrity](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity) (SRI) hashes to ensure the browser rejects tampered payloads.
+
 ### Threat model
 
-- **Signaling server**: Sees peer IDs and connection metadata, but never sees message content or encryption keys. Even a fully compromised PeerJS server cannot read messages.
+- **Signaling server**: Sees peer IDs and connection metadata, but never sees message content or encryption keys. Even a fully compromised PeerJS server cannot read messages. A MITM attack via the signaling server is detectable via safety number verification and triggers an identity change warning on subsequent connections (TOFU).
 - **Network observer**: Sees encrypted DTLS packets. Cannot determine message content.
-- **Key lifetime**: Key pairs are ephemeral — generated per room, per session. Disconnecting or closing the page destroys all keys. Reconnecting performs a fresh key exchange.
+- **Key lifetime**: ECDH key pairs are ephemeral — generated per room, per session. Disconnecting or closing the page destroys session keys. Reconnecting performs a fresh key exchange. Identity keys persist across sessions.
 - **Forward secrecy**: Each connection uses a new ephemeral key pair, so compromising one session's keys does not compromise past or future sessions.
-- **No authentication**: The key exchange does not authenticate peer identity. A man-in-the-middle who can intercept the signaling channel could substitute their own public keys. This is a known limitation of unauthenticated ECDH.
+- **Authentication**: Identity keys authenticate each peer during key exchange (TOFU model). Safety numbers provide out-of-band verification. Connections to peers without identity keys (older versions) show an "Unverified" badge.
+- **Replay protection**: Message sequence numbers prevent replay and reorder attacks within a session.

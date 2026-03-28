@@ -564,8 +564,7 @@
       .sidebar {
         position: fixed;
         top: 0; left: 0; bottom: 0;
-        width: 88vw;
-        max-width: 400px;
+        width: 100%;
         z-index: 50;
         transform: translateX(-100%);
         transition: transform 0.25s ease;
@@ -756,6 +755,72 @@
 
     .persist-unlock-modal input[type="password"]:focus { border-color: var(--accent); }
     .persist-unlock-modal button { width: 100%; }
+
+    /* ── Identity & Safety ── */
+    .identity-fp {
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 10px;
+      color: var(--green);
+      margin-left: 4px;
+    }
+
+    .safety-btn {
+      background: none;
+      border: 1px solid rgba(52, 211, 153, 0.25);
+      color: var(--green);
+      font-size: 13px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      cursor: pointer;
+      display: none;
+      flex-shrink: 0;
+    }
+
+    .safety-btn.active { display: inline-flex; }
+    .safety-btn:hover { background: rgba(52, 211, 153, 0.1); }
+
+    .safety-number {
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 22px;
+      letter-spacing: 3px;
+      color: var(--green);
+      background: var(--surface-2);
+      padding: 14px 20px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      text-align: center;
+      user-select: all;
+    }
+
+    .verified-check {
+      display: none;
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 700;
+      margin-left: 2px;
+    }
+
+    .verified-check.active { display: inline; }
+
+    .identity-warning-text {
+      color: var(--yellow);
+      font-size: 12px;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .unauthenticated-badge {
+      font-size: 10px;
+      color: var(--yellow);
+      background: rgba(251, 191, 36, 0.1);
+      border: 1px solid rgba(251, 191, 36, 0.25);
+      border-radius: 20px;
+      padding: 2px 8px;
+      white-space: nowrap;
+      display: none;
+    }
+
+    .unauthenticated-badge.active { display: inline-flex; }
   </style>
   <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABdklEQVR4nMVXvUrEQBDODulj77WCbyB2CoLtFYqVD+IT3IOkEi1sBcHrxDcQbLU3T6CMsDCZm9nM7OayH4TLbXb2++Zn/5qmMoLU2HXd774Ih2EYcYaliDUhUIOc8rVWg9urHxdB/3hg6heoGgvZ1/d7csDV4YlLVJtL9PH5NPp/fLRO2mnCgpb/89PnHZJcoLjXt0vxG2hGqDh6VUqeSgs0lQFa8WHBpJRbgWPQ4uMFHmINcPLYGYtKq4Wb683/7/3DnTv8kQOkj0iMTyoKkZy/p7yXAFyRBF6MEiFvozY4dnw4V0uNJBHYhtHwTknNe94G1gGpR1LOaZtn+oKlk1QLWuFZc+8SgMABNc+491ZyhGsh4qsjj8LUqlcsoJ9YnDyhn9yMUsBZ8bIde39xtnGTI7L3ApqKkk0Lcows83uvAnhBlmxaoeRAiocWhHbYsKDNtiz0fJYDSZ+Z99lSMAdAui4tBeStdibcuZoNC0aBclW/Hf8BMYGYrGQpP5kAAAAASUVORK5CYII=">
   <link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,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">
@@ -771,7 +836,7 @@
         <button id="newChatBtn" title="Start a new chat">+ New</button>
       </div>
       <div class="sidebar-id">
-        <div>Your ID</div>
+        <div>Your ID <span class="identity-fp" id="identityFp"></span></div>
         <div class="sidebar-id-row">
           <span class="id-value" id="myId">...</span>
           <button class="secondary" id="copyBtn" title="Copy your Peer ID" disabled>Copy</button>
@@ -817,6 +882,9 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           <span>E2E Encrypted</span>
         </div>
+        <span class="verified-check" id="verifiedCheck">✓</span>
+        <button class="safety-btn" id="safetyBtn" title="Verify safety number">🔒</button>
+        <span class="unauthenticated-badge" id="unauthBadge">Unverified</span>
         <div class="status">
           <span class="status-dot" id="statusDot"></span>
           <span id="statusText">Initializing...</span>
@@ -876,8 +944,29 @@
     </div>
   </div>
 
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <script src="https://unpkg.com/qrcode-generator@1.4.4/qrcode.js"></script>
+  <!-- Safety number verification modal -->
+  <div class="qr-overlay" id="safetyOverlay">
+    <div class="persist-unlock-modal">
+      <h2>Safety Number</h2>
+      <div class="safety-number" id="safetyNumber"></div>
+      <p>If this number matches on both devices, your conversation is secure and not being intercepted.</p>
+      <button id="safetyVerifyBtn">Mark as Verified</button>
+      <button class="secondary" id="safetyCloseBtn">Close</button>
+    </div>
+  </div>
+
+  <!-- Identity change warning modal -->
+  <div class="qr-overlay" id="identityWarningOverlay">
+    <div class="persist-unlock-modal">
+      <h2>⚠ Identity Changed</h2>
+      <p class="identity-warning-text" id="identityWarningText"></p>
+      <button id="identityAcceptBtn">Accept New Identity</button>
+      <button class="secondary" id="identityDisconnectBtn">Disconnect</button>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" integrity="sha384-nlUQ8ZqCbvStErob+biJNzSgltf6urV3VGqhfIfzhmg9RXmpeRm76ELw0pYnKlTR" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/qrcode-generator@1.4.4/qrcode.js" integrity="sha384-8FWZA6BGMXhsfO+BLtrJK0We6gg5o1JyO8xQm6peWDEUs17ACA5ziE/NIAkl9z2k" crossorigin="anonymous"></script>
 
   <script>
     (function () {
@@ -924,6 +1013,18 @@
       const unlockBtn      = $('unlockBtn');
       const unlockEraseBtn = $('unlockEraseBtn');
       const unlockHint     = $('unlockHint');
+      const identityFp     = $('identityFp');
+      const safetyBtn      = $('safetyBtn');
+      const safetyOverlay  = $('safetyOverlay');
+      const safetyNumber   = $('safetyNumber');
+      const safetyVerifyBtn= $('safetyVerifyBtn');
+      const safetyCloseBtn = $('safetyCloseBtn');
+      const verifiedCheck  = $('verifiedCheck');
+      const unauthBadge    = $('unauthBadge');
+      const identityWarningOverlay = $('identityWarningOverlay');
+      const identityWarningText    = $('identityWarningText');
+      const identityAcceptBtn      = $('identityAcceptBtn');
+      const identityDisconnectBtn  = $('identityDisconnectBtn');
 
       // ── State ──
       let peer = null;
@@ -936,6 +1037,12 @@
       let persistKey = null;
       let persistEnabled = false;
       let persistSaveTimer = null;
+      let identityKeyPair = null;
+      let identityAlgorithm = null; // 'Ed25519' or 'ECDSA'
+      let identityWarningResolver = null;
+
+      const IDENTITY_KEY_KEY = 'peervault_identity_key';
+      const KNOWN_IDENTITIES_KEY = 'peervault_known_identities';
 
       usernameInput.value = myUsername;
 
@@ -1175,12 +1282,165 @@
         return new TextDecoder().decode(decrypted);
       }
 
+      // ── Identity Signing Keys (Ed25519 / ECDSA P-256 fallback) ──
+      async function detectSigningAlgorithm() {
+        try {
+          await crypto.subtle.generateKey({ name: 'Ed25519' }, false, ['sign', 'verify']);
+          return 'Ed25519';
+        } catch {
+          return 'ECDSA';
+        }
+      }
+
+      function signingGenParams(algo) {
+        return algo === 'Ed25519' ? { name: 'Ed25519' } : { name: 'ECDSA', namedCurve: 'P-256' };
+      }
+
+      function signingParams(algo) {
+        return algo === 'Ed25519' ? { name: 'Ed25519' } : { name: 'ECDSA', namedCurve: 'P-256', hash: 'SHA-256' };
+      }
+
+      async function generateIdentityKey() {
+        identityAlgorithm = await detectSigningAlgorithm();
+        identityKeyPair = await crypto.subtle.generateKey(
+          signingGenParams(identityAlgorithm), true, ['sign', 'verify']
+        );
+        await saveIdentityKeyToStorage();
+        updateIdentityFingerprint();
+      }
+
+      async function exportIdentityPublicKey() {
+        const raw = await crypto.subtle.exportKey('raw', identityKeyPair.publicKey);
+        return Array.from(new Uint8Array(raw));
+      }
+
+      async function importSigningPublicKey(rawArray, algo) {
+        const params = algo === 'Ed25519' ? { name: 'Ed25519' } : { name: 'ECDSA', namedCurve: 'P-256' };
+        return crypto.subtle.importKey('raw', new Uint8Array(rawArray), params, true, ['verify']);
+      }
+
+      async function signData(data, privateKey) {
+        const sig = await crypto.subtle.sign(
+          signingParams(identityAlgorithm), privateKey, new Uint8Array(data)
+        );
+        return Array.from(new Uint8Array(sig));
+      }
+
+      async function verifySignature(data, signature, publicKey, algo) {
+        const params = algo === 'Ed25519' ? { name: 'Ed25519' } : { name: 'ECDSA', namedCurve: 'P-256', hash: 'SHA-256' };
+        return crypto.subtle.verify(params, publicKey, new Uint8Array(signature), new Uint8Array(data));
+      }
+
+      async function saveIdentityKeyToStorage() {
+        const pubRaw = await crypto.subtle.exportKey('raw', identityKeyPair.publicKey);
+        const privPkcs8 = await crypto.subtle.exportKey('pkcs8', identityKeyPair.privateKey);
+        let privData;
+        if (persistEnabled && persistKey) {
+          const iv = crypto.getRandomValues(new Uint8Array(12));
+          const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, persistKey, privPkcs8);
+          privData = { encrypted: true, iv: Array.from(iv), ct: Array.from(new Uint8Array(ct)) };
+        } else {
+          privData = { encrypted: false, data: Array.from(new Uint8Array(privPkcs8)) };
+        }
+        localStorage.setItem(IDENTITY_KEY_KEY, JSON.stringify({
+          algorithm: identityAlgorithm,
+          publicKey: Array.from(new Uint8Array(pubRaw)),
+          privateKey: privData,
+        }));
+      }
+
+      async function loadIdentityKeyFromStorage(decryptKey) {
+        const stored = localStorage.getItem(IDENTITY_KEY_KEY);
+        if (!stored) return false;
+        try {
+          const data = JSON.parse(stored);
+          identityAlgorithm = data.algorithm;
+          const pubKey = await importSigningPublicKey(data.publicKey, data.algorithm);
+          let privBytes;
+          if (data.privateKey.encrypted) {
+            const key = decryptKey || persistKey;
+            if (!key) return false;
+            privBytes = await crypto.subtle.decrypt(
+              { name: 'AES-GCM', iv: new Uint8Array(data.privateKey.iv) }, key, new Uint8Array(data.privateKey.ct)
+            );
+          } else {
+            privBytes = new Uint8Array(data.privateKey.data);
+          }
+          const importParams = data.algorithm === 'Ed25519' ? { name: 'Ed25519' } : { name: 'ECDSA', namedCurve: 'P-256' };
+          const privKey = await crypto.subtle.importKey('pkcs8', privBytes, importParams, true, ['sign']);
+          identityKeyPair = { publicKey: pubKey, privateKey: privKey };
+          updateIdentityFingerprint();
+          return true;
+        } catch (e) {
+          console.error('PeerVault: Failed to load identity key', e);
+          return false;
+        }
+      }
+
+      function updateIdentityFingerprint() {
+        if (!identityKeyPair) { identityFp.textContent = ''; return; }
+        crypto.subtle.exportKey('raw', identityKeyPair.publicKey).then(raw => {
+          const hex = Array.from(new Uint8Array(raw)).slice(0, 4).map(b => b.toString(16).padStart(2, '0')).join('');
+          identityFp.textContent = '🔑 ' + hex;
+        });
+      }
+
+      // ── Known Identities (TOFU) ──
+      function getKnownIdentities() {
+        try { return JSON.parse(localStorage.getItem(KNOWN_IDENTITIES_KEY) || '{}'); } catch { return {}; }
+      }
+
+      function getKnownIdentity(peerId) {
+        return getKnownIdentities()[peerId] || null;
+      }
+
+      function saveKnownIdentity(peerId, identityPubKey, algorithm, verified) {
+        const known = getKnownIdentities();
+        known[peerId] = { publicKey: identityPubKey, algorithm, verified: !!verified };
+        localStorage.setItem(KNOWN_IDENTITIES_KEY, JSON.stringify(known));
+      }
+
+      function clearVerifiedState(peerId) {
+        const known = getKnownIdentities();
+        if (known[peerId]) { known[peerId].verified = false; localStorage.setItem(KNOWN_IDENTITIES_KEY, JSON.stringify(known)); }
+      }
+
+      function isVerified(peerId) {
+        const known = getKnownIdentity(peerId);
+        return known ? !!known.verified : false;
+      }
+
+      function arraysEqual(a, b) {
+        if (a.length !== b.length) return false;
+        for (let i = 0; i < a.length; i++) { if (a[i] !== b[i]) return false; }
+        return true;
+      }
+
+      // ── Safety Number ──
+      async function computeSafetyNumber(myIdentityPub, theirIdentityPub) {
+        const sorted = [myIdentityPub, theirIdentityPub].sort((a, b) => {
+          for (let i = 0; i < Math.min(a.length, b.length); i++) { if (a[i] !== b[i]) return a[i] - b[i]; }
+          return a.length - b.length;
+        });
+        const combined = new Uint8Array([...sorted[0], ...sorted[1]]);
+        const hash = await crypto.subtle.digest('SHA-256', combined);
+        return Array.from(new Uint8Array(hash)).slice(0, 6).map(b => b.toString(16).padStart(2, '0')).join(' ');
+      }
+
+      function showIdentityWarning(peerId) {
+        return new Promise((resolve) => {
+          identityWarningText.textContent = peerId.slice(0, 16) + '…\'s identity key has changed since your last connection. This could mean someone is impersonating them, or they reset their identity.';
+          identityWarningOverlay.classList.add('active');
+          identityWarningResolver = resolve;
+        });
+      }
+
       // ── Persistence Crypto (PBKDF2 + AES-256-GCM) ──
       const PERSIST_SALT_KEY = 'peervault_persist_salt';
       const PERSIST_DATA_KEY = 'peervault_persist_data';
       const PERSIST_CHECK_KEY = 'peervault_persist_check';
       const PERSIST_ENABLED_KEY = 'peervault_persist_enabled';
-      const PBKDF2_ITERATIONS = 600000;
+      const PBKDF2_ITERATIONS = 900000;
       const PERSIST_SAVE_DELAY = 2000;
 
       function getOrCreateSalt() {
@@ -1229,13 +1489,14 @@
         if (!persistEnabled || !persistKey) return;
         try {
           const data = {
-            version: 1,
+            version: 2,
             savedAt: Date.now(),
             rooms: rooms.map(r => ({
               remotePeerId: r.remotePeerId,
               remoteName: r.remoteName,
               history: r.history,
             })),
+            knownIdentities: getKnownIdentities(),
           };
           const encrypted = await persistEncrypt(data, persistKey);
           localStorage.setItem(PERSIST_DATA_KEY, encrypted);
@@ -1268,6 +1529,10 @@
             room.remoteName = saved.remoteName || '';
             room.history = (saved.history || []).map(h => ({ ...h, saved: true }));
           }
+          // Restore known identities from saved data (version 2+)
+          if (data.knownIdentities) {
+            localStorage.setItem(KNOWN_IDENTITIES_KEY, JSON.stringify(data.knownIdentities));
+          }
         }
 
         persistKey = key;
@@ -1282,9 +1547,15 @@
         localStorage.removeItem(PERSIST_DATA_KEY);
         localStorage.removeItem(PERSIST_CHECK_KEY);
         localStorage.removeItem(PERSIST_ENABLED_KEY);
+        localStorage.removeItem(KNOWN_IDENTITIES_KEY);
 
         persistKey = null;
         persistEnabled = false;
+
+        // Re-save identity key as plaintext (no longer encrypted under persist key)
+        if (identityKeyPair && identityKeyPair.privateKey) {
+          saveIdentityKeyToStorage().catch(() => {});
+        }
 
         persistToggle.checked = false;
         persistSetup.style.display = 'none';
@@ -1340,6 +1611,11 @@
           reconnectAttempts: 0,
           reconnectTimer: null,
           shouldReconnect: false,
+          sendSeq: 0,
+          recvSeq: 0,
+          remoteIdentityKey: null,
+          remoteIdentityAlgorithm: null,
+          isAuthenticated: false,
         };
         room.keyPairReady = generateKeyPair().then(kp => { room.myKeyPair = kp; return kp; });
         rooms.push(room);
@@ -1517,6 +1793,10 @@
         // Update header
         headerTitle.textContent = roomDisplayName(room);
         encBadge.classList.toggle('active', room.isEncrypted);
+        const peerVerified = isVerified(room.remotePeerId);
+        verifiedCheck.classList.toggle('active', room.isEncrypted && room.isAuthenticated && peerVerified);
+        safetyBtn.classList.toggle('active', room.isEncrypted && room.isAuthenticated && room.conn && room.conn.open);
+        unauthBadge.classList.toggle('active', room.isEncrypted && !room.isAuthenticated && room.conn && room.conn.open);
         if (room.isEncrypted && room.conn && room.conn.open) {
           setStatus('connected', 'Connected to ' + room.remotePeerId);
         } else if (room.conn && room.conn.open) {
@@ -1550,6 +1830,9 @@
         messagesEl.appendChild(emptyState);
         headerTitle.textContent = 'PeerVault';
         encBadge.classList.remove('active');
+        verifiedCheck.classList.remove('active');
+        safetyBtn.classList.remove('active');
+        unauthBadge.classList.remove('active');
         setStatus('', 'Waiting for connection');
         typingEl.textContent = '';
         msgInput.disabled = true;
@@ -1646,6 +1929,9 @@
           setStatus('connecting', 'Connecting...');
         }
 
+        room.sendSeq = 0;
+        room.recvSeq = 0;
+
         let openHandled = false;
         const onOpen = async () => {
           if (openHandled) return;
@@ -1655,7 +1941,15 @@
 
           if (room.keyPairReady) await room.keyPairReady;
           const pubKey = await exportPublicKey(room.myKeyPair.publicKey);
-          conn.send({ type: 'key-exchange', publicKey: pubKey });
+
+          // Sign the ECDH public key with our identity key for authenticated key exchange
+          const keyExchangeMsg = { type: 'key-exchange', publicKey: pubKey };
+          if (identityKeyPair) {
+            keyExchangeMsg.identityKey = await exportIdentityPublicKey();
+            keyExchangeMsg.identityAlgorithm = identityAlgorithm;
+            keyExchangeMsg.signature = await signData(pubKey, identityKeyPair.privateKey);
+          }
+          conn.send(keyExchangeMsg);
         };
 
         conn.on('open', onOpen);
@@ -1676,20 +1970,64 @@
           if (data.type === 'key-exchange') {
             try {
               if (room.keyPairReady) await room.keyPairReady;
+
+              // Verify identity signature if present (authenticated key exchange)
+              room.isAuthenticated = false;
+              if (data.identityKey && data.signature && data.identityAlgorithm) {
+                const remoteIdKey = await importSigningPublicKey(data.identityKey, data.identityAlgorithm);
+                const valid = await verifySignature(data.publicKey, data.signature, remoteIdKey, data.identityAlgorithm);
+                if (!valid) {
+                  if (room.id === activeRoomId) setStatus('error', 'Signature verification failed');
+                  addSystemMessage(room, 'Key exchange rejected: invalid identity signature');
+                  conn.close();
+                  return;
+                }
+
+                // TOFU: check if identity key has changed
+                const known = getKnownIdentity(conn.peer);
+                if (known && !arraysEqual(known.publicKey, data.identityKey)) {
+                  clearVerifiedState(conn.peer);
+                  const accepted = await showIdentityWarning(conn.peer);
+                  if (!accepted) {
+                    addSystemMessage(room, 'Connection rejected: identity change not accepted');
+                    conn.close();
+                    return;
+                  }
+                }
+
+                // Store identity (TOFU or accepted change)
+                const wasVerified = known ? known.verified : false;
+                const keepVerified = known && arraysEqual(known.publicKey, data.identityKey) ? wasVerified : false;
+                saveKnownIdentity(conn.peer, data.identityKey, data.identityAlgorithm, keepVerified);
+                room.remoteIdentityKey = data.identityKey;
+                room.remoteIdentityAlgorithm = data.identityAlgorithm;
+                room.isAuthenticated = true;
+              } else {
+                // Old client without identity — accept but warn
+                addSystemMessage(room, 'Peer is using an older version — connection is not authenticated');
+              }
+
               const remotePubKey = await importPublicKey(data.publicKey);
               room.sharedKey = await deriveSharedKey(room.myKeyPair.privateKey, remotePubKey);
               room.isEncrypted = true;
               room.shouldReconnect = true;
               room.reconnectAttempts = 0;
+              room.sendSeq = 0;
+              room.recvSeq = 0;
 
               // Send username encrypted now that we have a shared key
               if (myUsername) {
-                const payload = await encryptMessage(JSON.stringify({ type: 'username', username: myUsername }), room.sharedKey);
+                const envelope = JSON.stringify({ _seq: room.sendSeq++, _body: JSON.stringify({ type: 'username', username: myUsername }) });
+                const payload = await encryptMessage(envelope, room.sharedKey);
                 conn.send({ type: 'encrypted', payload });
               }
 
               if (room.id === activeRoomId) {
                 encBadge.classList.add('active');
+                const peerVerified = isVerified(conn.peer);
+                verifiedCheck.classList.toggle('active', room.isAuthenticated && peerVerified);
+                safetyBtn.classList.toggle('active', room.isAuthenticated);
+                unauthBadge.classList.toggle('active', !room.isAuthenticated);
                 setStatus('connected', 'Connected to ' + conn.peer);
                 headerTitle.textContent = roomDisplayName(room);
                 msgInput.disabled = false;
@@ -1697,7 +2035,7 @@
                 msgInput.focus();
                 if (isMobile()) connectBar.classList.add('hidden-connected');
               }
-              addSystemMessage(room, 'E2E encryption established');
+              addSystemMessage(room, 'E2E encryption established' + (room.isAuthenticated ? ' (authenticated)' : ''));
               acquireWakeLock();
               renderSidebar();
             } catch (e) {
@@ -1724,11 +2062,25 @@
 
           if (data.type === 'encrypted' && room.sharedKey) {
             try {
-              const text = await decryptMessage(data.payload, room.sharedKey);
+              const decrypted = await decryptMessage(data.payload, room.sharedKey);
+
+              // Unwrap sequence number envelope if present
+              let body = decrypted;
+              try {
+                const envelope = JSON.parse(decrypted);
+                if (typeof envelope._seq === 'number' && typeof envelope._body === 'string') {
+                  if (envelope._seq !== room.recvSeq) {
+                    addSystemMessage(room, 'Message dropped: unexpected sequence');
+                    return;
+                  }
+                  room.recvSeq++;
+                  body = envelope._body;
+                }
+              } catch (_) { /* old format — no seq envelope */ }
 
               // Check if this is a control message (JSON with a type field)
               try {
-                const parsed = JSON.parse(text);
+                const parsed = JSON.parse(body);
                 if (parsed.type === 'username') {
                   room.remoteName = parsed.username || '';
                   if (room.id === activeRoomId) headerTitle.textContent = roomDisplayName(room);
@@ -1737,8 +2089,8 @@
                 }
               } catch (_) { /* not JSON — it's a regular chat message */ }
 
-              addMessage(room, text, theirDisplayName(room), false);
-              notifyMessage(theirDisplayName(room), text);
+              addMessage(room, body, theirDisplayName(room), false);
+              notifyMessage(theirDisplayName(room), body);
               room.isRemoteTyping = false;
               clearTimeout(room.remoteTypingTimeout);
               if (room.id === activeRoomId) typingEl.textContent = '';
@@ -1759,6 +2111,9 @@
 
           if (room.id === activeRoomId) {
             encBadge.classList.remove('active');
+            verifiedCheck.classList.remove('active');
+            safetyBtn.classList.remove('active');
+            unauthBadge.classList.remove('active');
             msgInput.disabled = true;
             sendBtn.disabled = true;
             typingEl.textContent = '';
@@ -1990,6 +2345,13 @@
         persistHint.textContent = '';
         persistHint.className = 'persist-hint';
 
+        // Erase identity key and known identities
+        localStorage.removeItem(IDENTITY_KEY_KEY);
+        localStorage.removeItem(KNOWN_IDENTITIES_KEY);
+        identityKeyPair = null;
+        identityAlgorithm = null;
+        identityFp.textContent = '';
+
         // Erase saved peer ID and username
         localStorage.removeItem(PEER_ID_KEY);
         localStorage.removeItem('peervault_username');
@@ -2001,7 +2363,7 @@
         activeRoomId = null;
         showNewChatView();
         closeSidebar();
-        initPeer();
+        generateIdentityKey().then(() => initPeer());
       });
 
       copyBtn.addEventListener('click', async () => {
@@ -2078,7 +2440,8 @@
         // Broadcast to all connected encrypted rooms
         for (const room of rooms) {
           if (room.conn && room.conn.open && room.sharedKey) {
-            encryptMessage(JSON.stringify({ type: 'username', username: myUsername }), room.sharedKey)
+            const envelope = JSON.stringify({ _seq: room.sendSeq++, _body: JSON.stringify({ type: 'username', username: myUsername }) });
+            encryptMessage(envelope, room.sharedKey)
               .then(payload => room.conn.send({ type: 'encrypted', payload }));
           }
         }
@@ -2098,7 +2461,8 @@
         const text = msgInput.value.trim();
         if (!text || !room || !room.conn || !room.conn.open || !room.sharedKey) return;
         try {
-          const payload = await encryptMessage(text, room.sharedKey);
+          const envelope = JSON.stringify({ _seq: room.sendSeq++, _body: text });
+          const payload = await encryptMessage(envelope, room.sharedKey);
           room.conn.send({ type: 'encrypted', payload });
           addMessage(room, text, ownDisplayName(), true);
           msgInput.value = '';
@@ -2148,10 +2512,24 @@
       });
 
       // ── Mobile: resize on virtual keyboard open/close ──
-      // In Capacitor native apps, the native Keyboard plugin handles resize.
-      // This handler is only needed for browser/PWA usage.
-      const isCapacitor = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
-      if (window.visualViewport && !isCapacitor) {
+      if (isNative && capPlugins.Keyboard) {
+        // Capacitor native: use Keyboard plugin events for reliable resize
+        capPlugins.Keyboard.addListener('keyboardWillShow', (info) => {
+          document.body.style.height = (window.innerHeight - info.keyboardHeight) + 'px';
+          window.scrollTo(0, 0);
+          messagesEl.scrollTop = messagesEl.scrollHeight;
+        });
+        capPlugins.Keyboard.addListener('keyboardWillHide', () => {
+          document.body.style.height = '100%';
+          window.scrollTo(0, 0);
+          messagesEl.scrollTop = messagesEl.scrollHeight;
+        });
+        // Prevent Android from scrolling the page when focusing inputs
+        document.addEventListener('focusin', () => {
+          setTimeout(() => window.scrollTo(0, 0), 50);
+        });
+      } else if (window.visualViewport) {
+        // Browser/PWA: use visualViewport API
         window.visualViewport.addEventListener('resize', () => {
           document.body.style.height = window.visualViewport.height + 'px';
           messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -2253,6 +2631,8 @@
           persistKey = key;
           persistEnabled = true;
           await saveAllChats();
+          // Re-encrypt identity key under persist key
+          if (identityKeyPair && identityKeyPair.privateKey) await saveIdentityKeyToStorage();
           persistHint.textContent = 'Chat history will be saved encrypted.';
           persistHint.className = 'persist-hint success';
           persistKeyInput.value = '';
@@ -2285,6 +2665,19 @@
         unlockHint.className = 'persist-hint';
         try {
           await loadAllChats(password);
+
+          // Decrypt identity key if it was encrypted under persist key
+          const idStored = localStorage.getItem(IDENTITY_KEY_KEY);
+          if (idStored) {
+            const idData = JSON.parse(idStored);
+            if (idData.privateKey && idData.privateKey.encrypted) {
+              await loadIdentityKeyFromStorage(persistKey);
+            }
+          } else {
+            // No identity key stored — generate one and encrypt under persist key
+            await generateIdentityKey();
+          }
+
           unlockOverlay.classList.remove('active');
           unlockKeyInput.value = '';
           persistToggle.checked = true;
@@ -2301,15 +2694,80 @@
         }
       });
 
+      // ── Safety number modal ──
+      safetyBtn.addEventListener('click', async () => {
+        const room = getActiveRoom();
+        if (!room || !room.isAuthenticated || !room.remoteIdentityKey || !identityKeyPair) return;
+        const myPub = await exportIdentityPublicKey();
+        const num = await computeSafetyNumber(myPub, room.remoteIdentityKey);
+        safetyNumber.textContent = num;
+        const peerVerified = isVerified(room.remotePeerId);
+        safetyVerifyBtn.textContent = peerVerified ? 'Verified ✓' : 'Mark as Verified';
+        safetyVerifyBtn.disabled = peerVerified;
+        safetyOverlay.classList.add('active');
+      });
+
+      safetyVerifyBtn.addEventListener('click', () => {
+        const room = getActiveRoom();
+        if (!room || !room.remoteIdentityKey) return;
+        saveKnownIdentity(room.remotePeerId, room.remoteIdentityKey, room.remoteIdentityAlgorithm, true);
+        safetyVerifyBtn.textContent = 'Verified ✓';
+        safetyVerifyBtn.disabled = true;
+        verifiedCheck.classList.add('active');
+      });
+
+      safetyCloseBtn.addEventListener('click', () => safetyOverlay.classList.remove('active'));
+      safetyOverlay.addEventListener('click', (e) => {
+        if (e.target === safetyOverlay) safetyOverlay.classList.remove('active');
+      });
+
+      // ── Identity change warning handlers ──
+      identityAcceptBtn.addEventListener('click', () => {
+        identityWarningOverlay.classList.remove('active');
+        if (identityWarningResolver) { identityWarningResolver(true); identityWarningResolver = null; }
+      });
+
+      identityDisconnectBtn.addEventListener('click', () => {
+        identityWarningOverlay.classList.remove('active');
+        if (identityWarningResolver) { identityWarningResolver(false); identityWarningResolver = null; }
+      });
+
       // ── Start ──
       // Check if returning user with encrypted data
-      if (localStorage.getItem(PERSIST_DATA_KEY) && localStorage.getItem(PERSIST_ENABLED_KEY) === '1') {
+      const hasEncryptedData = localStorage.getItem(PERSIST_DATA_KEY) && localStorage.getItem(PERSIST_ENABLED_KEY) === '1';
+      if (hasEncryptedData) {
         unlockOverlay.classList.add('active');
         persistToggle.checked = true;
       }
 
-      initPeer();
-      startHeartbeat();
+      // Initialize identity key, then start peer
+      (async function startup() {
+        // Load or generate identity key
+        const identityStored = localStorage.getItem(IDENTITY_KEY_KEY);
+        if (identityStored) {
+          const data = JSON.parse(identityStored);
+          if (data.privateKey && data.privateKey.encrypted) {
+            // Identity key is encrypted — defer loading until persistence unlocked
+            // Just load the public key for fingerprint display
+            try {
+              identityAlgorithm = data.algorithm;
+              const pubKey = await importSigningPublicKey(data.publicKey, data.algorithm);
+              // Store partial — privateKey will be loaded after unlock
+              identityKeyPair = { publicKey: pubKey, privateKey: null };
+              updateIdentityFingerprint();
+            } catch {}
+          } else {
+            await loadIdentityKeyFromStorage();
+          }
+        } else if (!hasEncryptedData) {
+          // Fresh start — generate new identity key
+          await generateIdentityKey();
+        }
+        // If hasEncryptedData but no identity stored, generate after unlock
+
+        initPeer();
+        startHeartbeat();
+      })();
     })();
   </script>
 </body>
